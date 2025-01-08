@@ -9,73 +9,112 @@ class Serverless {
    public:
     class state {
        public:
-        State() : data(dimension) { /* nothing to do here */ }
+        State()
+            : data(nMetrics, nCores,
+                   arma::fill::zeros) { /* nothing to do here */ }
 
         /**
          * Construct a state instance from given data.
          *
          * @param data Data for the state.
          */
-        State(const arma::colvec& data)
-            : data(data) { /* Nothing to do here */ }
+        State(const arma::mat& data) : data(data) { /* Nothing to do here */ }
 
-        //! Modify the internal representation of the state.
-        arma::colvec& Data() { return data; }
+        double TaskRespondTime(size_t core) const { return data(0, core); }
+        double& TaskRespondTime(size_t core) { return data(0, core); }
 
-        double TaskOnCore() const { return data[0]; }
-        double& TaskOnCore() { return data[0]; }
+        double TaskExecTime(size_t core) const { return data(1, core); }
+        double& TaskExecTime(size_t core) { return data(1, core); }
 
-        double TaskRespondTime() const { return data[1]; }
-        double& TaskRespondTime() { return data[1]; }
+        double TaskCPUtime() const { return data(2, core); }
+        double& TaskCPUtime() { return data(2, core); }
 
-        double TaskExecTime() const { return data[2]; }
-        double& TaskExecTime() { return data[2]; }
+        double TaskMemory() const { return data(3, core); }
+        double& TaskMemory() { return data(3, core); }
 
-        double TaskCPUtime() const { return data[3]; }
-        double& TaskCPUtime() { return data[3]; }
+        double PreemptCountPerCore() const { return data(4, core); }
+        double& PreemptCountPerCore() { return data(4, core); }
 
-        double TaskMemory() const { return data[4]; }
-        double& TaskMemory() { return data[4]; }
+        double CPU_user_time() const { return data(5, core); }
+        double& CPU_user_time() { return data(5, core); }
 
-        double TaskPreemptions() const { return data[5]; }
-        double& TaskPreemptions() { return data[5]; }
+        double CPU_nice_time() const { return data(6, core); }
+        double& CPU_nice_time() { return data(6, core); }
 
-        double CPU_user_time() const { return data[6]; }
-        double& CPU_user_time() { return data[6]; }
+        double CPU_system_time() const { return data(7, core); }
+        double& CPU_system_time() { return data(7, core); }
 
-        double CPU_nice_time() const { return data[7]; }
-        double& CPU_nice_time() { return data[7]; }
+        double CPU_idle_time() const { return data(8, core); }
+        double& CPU_idle_time() { return data(8, core); }
 
-        double CPU_system_time() const { return data[8]; }
-        double& CPU_system_time() { return data[8]; }
+        double CPU_iowait_time() const { return data(9, core); }
+        double& CPU_iowait_time() { return data(9, core); }
 
-        double CPU_idle_time() const { return data[9]; }
-        double& CPU_idle_time() { return data[9]; }
+        double CPU_irq_time() const { return data(10, core); }
+        double& CPU_irq_time() { return data(10, core); }
 
-        double CPU_iowait_time() const { return data[10]; }
-        double& CPU_iowait_time() { return data[10]; }
+        double CPU_softirq_time() const { return data(11, core); }
+        double& CPU_softirq_time() { return data(11, core); }
 
-        double CPU_irq_time() const { return data[11]; }
-        double& CPU_irq_time() { return data[11]; }
+        double CPU_steal_time() const { return data(12, core); }
+        double& CPU_steal_time() { return data(12, core); }
 
-        double CPU_softirq_time() const { return data[12]; }
-        double& CPU_softirq_time() { return data[12]; }
+        double CPU_queue_length() const { return data(13, core); }
+        double& CPU_queue_length() { return data(13, core); }
 
-        double CPU_steal_time() const { return data[13]; }
-        double& CPU_steal_time() { return data[13]; }
+        double GetMetricValue(size_t metricIndex, size_t coreIndex) const {
+            return data(metricIndex, coreIndex);
+        }
 
-        double CPU_queue_length() const { return data[14]; }
-        double& CPU_queue_length() { return data[14]; }
+        arma::rowvec& TaskResponseTime() const { return data.row(0); }
+        arma::rowvec& TaskExecTime() const { return data.row(1); }
+        arma::rowvec& TaskCPUtime() const { return data.row(2); }
+        arma::rowvec& TaskMemory() const { return data.row(3); }
+        arma::rowvec& PreemptCountPerCore() const { return data.row(4); }
+        arma::rowvec& CPU_user_time() const { return data.row(5); }
+        arma::rowvec& CPU_nice_time() const { return data.row(6); }
+        arma::rowvec& CPU_system_time() const { return data.row(7); }
+        arma::rowvec& CPU_idle_time() const { return data.row(8); }
+        arma::rowvec& CPU_iowait_time() const { return data.row(9); }
+        arma::rowvec& CPU_irq_time() const { return data.row(10); }
+        arma::rowvec& CPU_softirq_time() const { return data.row(11); }
+        arma::rowvec& CPU_steal_time() const { return data.row(12); }
+        arma::rowvec& CPU_queue_length() const { return data.row(13); }
 
-        //! Encode the state to a column vector.
-        const arma::colvec& Encode() const { return data; }
+        arma::rowvec& GetMetricRow(size_t metricIndex) const {
+            if (metricIndex >= nMetrics) {
+                throw std::invalid_argument(
+                    "Invalid metric index. Must be less than " + nMetrics);
+            }
+            return data.row(metricIndex);
+        }
 
-        //! Dimension of the encoded state.
-        static constexpr size_t dimension = 15;
+        // Set a metric's value
+        void SetMetricValue(size_t metricIndex, size_t coreIndex,
+                            double value) {
+            data(metricIndex, coreIndex) = value;
+        }
+
+        void UpdateMetrics(const arma::colvec& newMetrics) {
+            if (newMetrics.n_elem != dimension) {
+                throw std::invalid_argument(
+                    "Input metrics size does not match the state dimension.");
+            }
+            data = newMetrics;
+        }
+
+        arma::mat& Data() { return data; }
+        const arma::mat& Data() const { return data; }
+
+        //! Dimension of the metrics
+        static constexpr size_t nMetrics = 15;
+
+        //! Dimension of the number of cores
+        static constexpr size_t nCores = 60;
 
        private:
         //! Locally-stored state data.
-        arma::colvec data;
+        arma::mat data;
     }
 
     class Action {
@@ -112,33 +151,7 @@ class Serverless {
     double Sample(const State& state, const Action& action, State& nextState) {
         StepsPerformed++;
 
-        arma::colvec currentState = {
-            state.TaskOnCore(),       state.TaskRespondTime(),
-            state.TaskExecTime(),     state.TaskCPUtime(),
-            state.TaskMemory(),       state.TaskPreemptions(),
-            state.CPU_user_time(),    state.CPU_nice_time(),
-            state.CPU_system_time(),  state.CPU_idle_time(),
-            state.CPU_iowait_time(),  state.CPU_irq_time(),
-            state.CPU_softirq_time(), state.CPU_steal_time(),
-            state.CPU_queue_length()};
-
-        double dest_core = action.action;
-        nextState.TaskOnCore() = dest_core;
-        // to do: add the logic to calculate the next state based on the current
-        nextState.TaskRespondTime() = currentState.TaskRespondTime() + 1;
-        nextState.TaskExecTime() = currentState.TaskExecTime() + 1;
-        nextState.TaskCPUtime() = currentState.TaskCPUtime() + 1;
-        nextState.TaskMemory() = currentState.TaskMemory() + 1;
-        nextState.TaskPreemptions() = currentState.TaskPreemptions() + 1;
-        nextState.CPU_user_time() = currentState.CPU_user_time() + 1;
-        nextState.CPU_nice_time() = currentState.CPU_nice_time() + 1;
-        nextState.CPU_system_time() = currentState.CPU_system_time() + 1;
-        nextState.CPU_idle_time() = currentState.CPU_idle_time() + 1;
-        nextState.CPU_iowait_time() = currentState.CPU_iowait_time() + 1;
-        nextState.CPU_irq_time() = currentState.CPU_irq_time() + 1;
-        nextState.CPU_softirq_time() = currentState.CPU_softirq_time() + 1;
-        nextState.CPU_steal_time() = currentState.CPU_steal_time() + 1;
-        nextState.CPU_queue_length() = currentState.CPU_queue_length() + 1;
+        // to do: Update the state based on the action.
 
         bool done = IsTerminal(nextState);
 
@@ -169,8 +182,9 @@ class Serverless {
      */
     State InitialSample() {
         stepPerformed = 0;
-        // to do: add the logic to generate the initial state.
-        return State();
+        arma::mat initialData(State::nMetrics, State::nCores,
+                              arma::fill::zeros);
+        return State(initialData);
     }
 
     /**
@@ -180,7 +194,14 @@ class Serverless {
      * @return true if state is a terminal state, otherwise false.
      */
     bool IsTerminal(const State& state) const {
-        // to do: add the logic to check if the state is terminal.
+        if (maxSteps != 0 && StepsPerformed >= maxSteps) {
+            Log::Info << "Episode terminated due to the maximum number of steps"
+                      << "being taken.";
+            return true;
+        } else if (arma::all(state.CPU_queue_length() == 0.0)) {
+            Log::Info << "Episode terminated due all tasks finished.";
+            return true;
+        }
         return false;
     }
 
