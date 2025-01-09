@@ -20,47 +20,67 @@ class Serverless {
          */
         State(const arma::mat& data) : data(data) { /* Nothing to do here */ }
 
+        // The historical response time (sum or average) of tasks completed on
+        // this core.
         double TaskRespondTime(size_t core) const { return data(0, core); }
         double& TaskRespondTime(size_t core) { return data(0, core); }
 
+        // The historical execution time (sum or average) of tasks completed on
+        // this core.
         double TaskExecTime(size_t core) const { return data(1, core); }
         double& TaskExecTime(size_t core) { return data(1, core); }
 
-        double TaskCPUtime() const { return data(2, core); }
-        double& TaskCPUtime() { return data(2, core); }
+        // The sum of on CPU time of tasks in the current individual queue. If
+        // no migration, then no need for this metric.
+        double TaskCPUtime(size_t core) const { return data(2, core); }
+        double& TaskCPUtime(size_t core) { return data(2, core); }
 
-        double TaskMemory() const { return data(3, core); }
-        double& TaskMemory() { return data(3, core); }
+        // Memory usage of running tasks on this core.
+        // This metric is questionable. No need for one-time scheduling, i.e. no
+        // migration for the current running tasks. But it might be useful for
+        // the rescheduling of the preempted tasks.
+        double TaskMemory(size_t core) const { return data(3, core); }
+        double& TaskMemory(size_t core) { return data(3, core); }
 
-        double PreemptCountPerCore() const { return data(4, core); }
-        double& PreemptCountPerCore() { return data(4, core); }
+        // number of preemptions happened on this core
+        double PreemptCountPerCore(size_t core) const { return data(4, core); }
+        double& PreemptCountPerCore(size_t core) { return data(4, core); }
 
-        double CPU_user_time() const { return data(5, core); }
-        double& CPU_user_time() { return data(5, core); }
+        // current CPU uer time on this core
+        double CPU_user_time(size_t core) const { return data(5, core); }
+        double& CPU_user_time(size_t core) { return data(5, core); }
 
-        double CPU_nice_time() const { return data(6, core); }
-        double& CPU_nice_time() { return data(6, core); }
+        // current CPU nice time on this core
+        double CPU_nice_time(size_t core) const { return data(6, core); }
+        double& CPU_nice_time(size_t core) { return data(6, core); }
 
-        double CPU_system_time() const { return data(7, core); }
-        double& CPU_system_time() { return data(7, core); }
+        // current CPU system time on this core
+        double CPU_system_time(size_t core) const { return data(7, core); }
+        double& CPU_system_time(size_t core) { return data(7, core); }
 
-        double CPU_idle_time() const { return data(8, core); }
-        double& CPU_idle_time() { return data(8, core); }
+        // current CPU idle time on this core
+        double CPU_idle_time(size_t core) const { return data(8, core); }
+        double& CPU_idle_time(size_t core) { return data(8, core); }
 
-        double CPU_iowait_time() const { return data(9, core); }
-        double& CPU_iowait_time() { return data(9, core); }
+        // current CPU iowait time on this core
+        double CPU_iowait_time(size_t core) const { return data(9, core); }
+        double& CPU_iowait_time(size_t core) { return data(9, core); }
 
-        double CPU_irq_time() const { return data(10, core); }
-        double& CPU_irq_time() { return data(10, core); }
+        // current CPU irq time on this core
+        double CPU_irq_time(size_t core) const { return data(10, core); }
+        double& CPU_irq_time(size_t core) { return data(10, core); }
 
-        double CPU_softirq_time() const { return data(11, core); }
-        double& CPU_softirq_time() { return data(11, core); }
+        // current CPU softirq time on this core
+        double CPU_softirq_time(size_t core) const { return data(11, core); }
+        double& CPU_softirq_time(size_t core) { return data(11, core); }
 
-        double CPU_steal_time() const { return data(12, core); }
-        double& CPU_steal_time() { return data(12, core); }
+        // current CPU steal time on this core
+        double CPU_steal_time(size_t core) const { return data(12, core); }
+        double& CPU_steal_time(size_t core) { return data(12, core); }
 
-        double CPU_queue_length() const { return data(13, core); }
-        double& CPU_queue_length() { return data(13, core); }
+        // current CPU queue length on this core
+        double CPU_queue_length(size_t core) const { return data(13, core); }
+        double& CPU_queue_length(size_t core) { return data(13, core); }
 
         double GetMetricValue(size_t metricIndex, size_t coreIndex) const {
             return data(metricIndex, coreIndex);
@@ -152,6 +172,19 @@ class Serverless {
         StepsPerformed++;
 
         // to do: Update the state based on the action.
+        size_t dest_core = action.action;
+        double maxTask = CPU_queue_length().max();
+        double minTask = CPU_queue_length().min();
+        if (state.CPU_queue_length(dest_core) == maxTask) {
+            return -1.0;
+        } else if (state.CPU_queue_length(dest_core) == minTask) {
+            return 1.0;
+        }
+        // corresponding core CPU_queue_length add 1
+        nextState.CPU_queue_length(dest_core) =
+            state.CPU_queue_length(dest_core) + 1;
+
+        // to do: update the metrics of the next state
 
         bool done = IsTerminal(nextState);
 
