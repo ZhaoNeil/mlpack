@@ -7,7 +7,7 @@ namespace mlpack {
 
 class Serverless {
    public:
-    class state {
+    class State {
        public:
         State()
             : data(nMetrics, nCores,
@@ -86,22 +86,77 @@ class Serverless {
             return data(metricIndex, coreIndex);
         }
 
-        arma::rowvec& TaskResponseTime() const { return data.row(0); }
-        arma::rowvec& TaskExecTime() const { return data.row(1); }
-        arma::rowvec& TaskCPUtime() const { return data.row(2); }
-        arma::rowvec& TaskMemory() const { return data.row(3); }
-        arma::rowvec& PreemptCountPerCore() const { return data.row(4); }
-        arma::rowvec& CPU_user_time() const { return data.row(5); }
-        arma::rowvec& CPU_nice_time() const { return data.row(6); }
-        arma::rowvec& CPU_system_time() const { return data.row(7); }
-        arma::rowvec& CPU_idle_time() const { return data.row(8); }
-        arma::rowvec& CPU_iowait_time() const { return data.row(9); }
-        arma::rowvec& CPU_irq_time() const { return data.row(10); }
-        arma::rowvec& CPU_softirq_time() const { return data.row(11); }
-        arma::rowvec& CPU_steal_time() const { return data.row(12); }
-        arma::rowvec& CPU_queue_length() const { return data.row(13); }
+        const arma::subview_row<double> TaskResponseTime() const {
+            return data.row(0);
+        }
+        arma::subview_row<double> TaskResponseTime() { return data.row(0); }
 
-        arma::rowvec& GetMetricRow(size_t metricIndex) const {
+        const arma::subview_row<double> TaskExecTime() const {
+            return data.row(1);
+        }
+        arma::subview_row<double> TaskExecTime() { return data.row(1); }
+
+        const arma::subview_row<double> TaskCPUtime() const {
+            return data.row(2);
+        }
+        arma::subview_row<double> TaskCPUtime() { return data.row(2); }
+
+        const arma::subview_row<double> TaskMemory() const {
+            return data.row(3);
+        }
+        arma::subview_row<double> TaskMemory() { return data.row(3); }
+
+        const arma::subview_row<double> PreemptCountPerCore() const {
+            return data.row(4);
+        }
+        arma::subview_row<double> PreemptCountPerCore() { return data.row(4); }
+
+        const arma::subview_row<double> CPU_user_time() const {
+            return data.row(5);
+        }
+        arma::subview_row<double> CPU_user_time() { return data.row(5); }
+
+        const arma::subview_row<double> CPU_nice_time() const {
+            return data.row(6);
+        }
+        arma::subview_row<double> CPU_nice_time() { return data.row(6); }
+
+        const arma::subview_row<double> CPU_system_time() const {
+            return data.row(7);
+        }
+        arma::subview_row<double> CPU_system_time() { return data.row(7); }
+
+        const arma::subview_row<double> CPU_idle_time() const {
+            return data.row(8);
+        }
+        arma::subview_row<double> CPU_idle_time() { return data.row(8); }
+
+        const arma::subview_row<double> CPU_iowait_time() const {
+            return data.row(9);
+        }
+        arma::subview_row<double> CPU_iowait_time() { return data.row(9); }
+
+        const arma::subview_row<double> CPU_irq_time() const {
+            return data.row(10);
+        }
+        arma::subview_row<double> CPU_irq_time() { return data.row(10); }
+
+        const arma::subview_row<double> CPU_softirq_time() const {
+            return data.row(11);
+        }
+        arma::subview_row<double> CPU_softirq_time() { return data.row(11); }
+
+        const arma::subview_row<double> CPU_steal_time() const {
+            return data.row(12);
+        }
+        arma::subview_row<double> CPU_steal_time() { return data.row(12); }
+
+        const arma::subview_row<double> CPU_queue_length() const {
+            return data.row(13);
+        }
+        arma::subview_row<double> CPU_queue_length() { return data.row(13); }
+
+        const arma::rowvec& GetMetricRow(size_t metricIndex) const {
             if (metricIndex >= nMetrics) {
                 throw std::invalid_argument(
                     "Invalid metric index. Must be less than " + nMetrics);
@@ -116,7 +171,7 @@ class Serverless {
         }
 
         void UpdateMetrics(const arma::colvec& newMetrics) {
-            if (newMetrics.n_elem != dimension) {
+            if (newMetrics.n_elem != nMetrics) {
                 throw std::invalid_argument(
                     "Input metrics size does not match the state dimension.");
             }
@@ -135,13 +190,13 @@ class Serverless {
        private:
         //! Locally-stored state data.
         arma::mat data;
-    }
+    };
 
     class Action {
        public:
         enum actions {
             allocate_core,
-        }
+        };
         // To store the action.
         Action::actions action;
 
@@ -157,7 +212,7 @@ class Serverless {
      *
      */
     Serverless(const size_t maxSteps = 500, const double doneReward = 1.0)
-        : maxSteps(maxSteps), doneReward(doneReward), StepsPerformed(0) {}
+        : maxSteps(maxSteps), doneReward(doneReward), stepsPerformed(0) {}
 
     /**
      * Dynamics of the Serverless instance. Get reward and next state based on
@@ -169,12 +224,12 @@ class Serverless {
      * @return reward,
      */
     double Sample(const State& state, const Action& action, State& nextState) {
-        StepsPerformed++;
+        stepsPerformed++;
 
         // to do: Update the state based on the action.
         size_t dest_core = action.action;
-        double maxTask = CPU_queue_length().max();
-        double minTask = CPU_queue_length().min();
+        double maxTask = state.CPU_queue_length().max();
+        double minTask = state.CPU_queue_length().min();
         if (state.CPU_queue_length(dest_core) == maxTask) {
             return -1.0;
         } else if (state.CPU_queue_length(dest_core) == minTask) {
@@ -188,7 +243,7 @@ class Serverless {
 
         bool done = IsTerminal(nextState);
 
-        if (done && maxSteps != 0 && StepsPerformed >= maxSteps) {
+        if (done && maxSteps != 0 && stepsPerformed >= maxSteps) {
             return doneReward;
         }
 
@@ -214,7 +269,7 @@ class Serverless {
      * @return the dummy state.
      */
     State InitialSample() {
-        stepPerformed = 0;
+        stepsPerformed = 0;
         arma::mat initialData(State::nMetrics, State::nCores,
                               arma::fill::zeros);
         return State(initialData);
@@ -227,7 +282,7 @@ class Serverless {
      * @return true if state is a terminal state, otherwise false.
      */
     bool IsTerminal(const State& state) const {
-        if (maxSteps != 0 && StepsPerformed >= maxSteps) {
+        if (maxSteps != 0 && stepsPerformed >= maxSteps) {
             Log::Info << "Episode terminated due to the maximum number of steps"
                       << "being taken.";
             return true;
@@ -239,7 +294,7 @@ class Serverless {
     }
 
     // Get the number of steps performed.
-    size_t StepsPerformed() const { return StepsPerformed; }
+    size_t StepsPerformed() const { return stepsPerformed; }
 
     // Get the maximum number of steps allowed.
     size_t MaxSteps() const { return maxSteps; }
@@ -254,7 +309,7 @@ class Serverless {
     double doneReward;
 
     // Locally-stored number of steps performed.
-    size_t StepsPerformed;
+    size_t stepsPerformed;
 };
 }  // namespace mlpack
 
