@@ -10,7 +10,7 @@ class Serverless {
     class State {
        public:
         State()
-            : data(nMetrics, nCores,
+            : data(dimension, nCores,
                    arma::fill::zeros) { /* nothing to do here */ }
 
         /**
@@ -157,9 +157,9 @@ class Serverless {
         arma::subview_row<double> CPU_queue_length() { return data.row(13); }
 
         const arma::rowvec& GetMetricRow(size_t metricIndex) const {
-            if (metricIndex >= nMetrics) {
+            if (metricIndex >= dimension) {
                 throw std::invalid_argument(
-                    "Invalid metric index. Must be less than " + nMetrics);
+                    "Invalid metric index. Must be less than " + dimension);
             }
             return data.row(metricIndex);
         }
@@ -171,7 +171,7 @@ class Serverless {
         }
 
         void UpdateMetrics(const arma::colvec& newMetrics) {
-            if (newMetrics.n_elem != nMetrics) {
+            if (newMetrics.n_elem != dimension) {
                 throw std::invalid_argument(
                     "Input metrics size does not match the state dimension.");
             }
@@ -181,11 +181,18 @@ class Serverless {
         arma::mat& Data() { return data; }
         const arma::mat& Data() const { return data; }
 
+        //! Encode the state to a column vector.
+        const arma::colvec& Encode() { return arma::vectorise(data); }
+
         //! Dimension of the metrics
-        static constexpr size_t nMetrics = 15;
+        size_t dimension = GetRows();
 
         //! Dimension of the number of cores
-        static constexpr size_t nCores = 60;
+        size_t nCores = GetCols();
+
+        size_t GetRows() const { return data.n_rows; }
+
+        size_t GetCols() const { return data.n_cols; }
 
        private:
         //! Locally-stored state data.
@@ -211,8 +218,12 @@ class Serverless {
      * @param doneReward The reward recieved by the agent on success.
      *
      */
-    Serverless(const size_t maxSteps = 500, const double doneReward = 1.0)
-        : maxSteps(maxSteps), doneReward(doneReward), stepsPerformed(0) {}
+    Serverless(const size_t maxSteps = 500, const double doneReward = 1.0,
+               arma::mat& data, size_t dimension = 14, size_t nCores = 60)
+        : maxSteps(maxSteps),
+          doneReward(doneReward),
+          stepsPerformed(0),
+          data(data) {}
 
     /**
      * Dynamics of the Serverless instance. Get reward and next state based on
@@ -270,9 +281,7 @@ class Serverless {
      */
     State InitialSample() {
         stepsPerformed = 0;
-        arma::mat initialData(State::nMetrics, State::nCores,
-                              arma::fill::zeros);
-        return State(initialData);
+        return State(data);
     }
 
     /**
@@ -310,6 +319,15 @@ class Serverless {
 
     // Locally-stored number of steps performed.
     size_t stepsPerformed;
+
+    // Locally-stored data.
+    arma::mat data;
+
+    // Dimension of the metrics
+    size_t dimension = data.n_rows;
+
+    // Dimension of the number of cores
+    size_t nCores = data.n_cols;
 };
 }  // namespace mlpack
 
