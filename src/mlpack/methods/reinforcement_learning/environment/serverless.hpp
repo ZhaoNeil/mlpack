@@ -185,10 +185,12 @@ class Serverless {
         const arma::colvec& Encode() { return arma::vectorise(data); }
 
         //! Dimension of the metrics
-        size_t dimension = GetRows();
+        // size_t dimension = GetRows();
+        static constexpr size_t dimension = 14;
 
         //! Dimension of the number of cores
-        size_t nCores = GetCols();
+        // size_t nCores = GetCols();
+        static constexpr size_t nCores = 60;
 
         size_t GetRows() const { return data.n_rows; }
 
@@ -218,12 +220,14 @@ class Serverless {
      * @param doneReward The reward recieved by the agent on success.
      *
      */
-    Serverless(const size_t maxSteps = 500, const double doneReward = 1.0,
-               arma::mat& data, size_t dimension = 14, size_t nCores = 60)
+    Serverless(const size_t maxSteps, const double doneReward, arma::mat& data,
+               size_t dimension, size_t nCores)
         : maxSteps(maxSteps),
           doneReward(doneReward),
-          stepsPerformed(0),
-          data(data) {}
+          data(data),
+          dimension(dimension),
+          nCores(nCores),
+          stepsPerformed(0) {}
 
     /**
      * Dynamics of the Serverless instance. Get reward and next state based on
