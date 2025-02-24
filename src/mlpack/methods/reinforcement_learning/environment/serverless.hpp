@@ -10,183 +10,374 @@ class Serverless {
     class State {
        public:
         State()
-            : data(dimension, nCores,
-                   arma::fill::zeros) { /* nothing to do here */ }
+            : data(14, nCores, arma::fill::zeros) { /* nothing to do here */ }
 
         /**
          * Construct a state instance from given data.
          *
          * @param data Data for the state.
          */
-        State(const arma::mat& data) : data(data) { /* Nothing to do here */ }
+        // State(const arma::mat& data) : data(data) { /* Nothing to do here */
+        // }
+        State(const arma::mat& inputData)
+            : data(inputData.is_empty() ? arma::zeros(14, nCores) : inputData) {
+            if (data.is_empty()) {
+                throw std::runtime_error(
+                    "State initialization error: data is empty.");
+            }
+        }
+
+        inline size_t FlattenIndex(size_t row, size_t col) const {
+            // row ∈ [0,13], col ∈ [0,59]
+            // nRows = 14
+            return row + col * 14;
+        }
 
         // The historical response time (sum or average) of tasks completed on
         // this core.
-        double TaskRespondTime(size_t core) const { return data(0, core); }
-        double& TaskRespondTime(size_t core) { return data(0, core); }
+        double TaskRespondTime(size_t core) const {
+            size_t idx = FlattenIndex(0, core);
+            return data(idx);
+        }
+        double& TaskRespondTime(size_t core) {
+            size_t idx = FlattenIndex(0, core);
+            return data(idx);
+        }
 
         // The historical execution time (sum or average) of tasks completed on
         // this core.
-        double TaskExecTime(size_t core) const { return data(1, core); }
-        double& TaskExecTime(size_t core) { return data(1, core); }
+        double TaskExecTime(size_t core) const {
+            size_t idx = FlattenIndex(1, core);
+            return data(idx);
+        }
+        double& TaskExecTime(size_t core) {
+            size_t idx = FlattenIndex(1, core);
+            return data(idx);
+        }
 
         // The sum of on CPU time of tasks in the current individual queue. If
         // no migration, then no need for this metric.
-        double TaskCPUtime(size_t core) const { return data(2, core); }
-        double& TaskCPUtime(size_t core) { return data(2, core); }
+        double TaskCPUtime(size_t core) const {
+            size_t idx = FlattenIndex(2, core);
+            return data(idx);
+        }
+        double& TaskCPUtime(size_t core) {
+            size_t idx = FlattenIndex(2, core);
+            return data(idx);
+        }
 
         // Memory usage of running tasks on this core.
         // This metric is questionable. No need for one-time scheduling, i.e. no
         // migration for the current running tasks. But it might be useful for
         // the rescheduling of the preempted tasks.
-        double TaskMemory(size_t core) const { return data(3, core); }
-        double& TaskMemory(size_t core) { return data(3, core); }
+        double TaskMemory(size_t core) const {
+            size_t idx = FlattenIndex(3, core);
+            return data(idx);
+        }
+        double& TaskMemory(size_t core) {
+            size_t idx = FlattenIndex(3, core);
+            return data(idx);
+        }
 
         // number of preemptions happened on this core
-        double PreemptCountPerCore(size_t core) const { return data(4, core); }
-        double& PreemptCountPerCore(size_t core) { return data(4, core); }
+        double PreemptCountPerCore(size_t core) const {
+            size_t idx = FlattenIndex(4, core);
+            return data(idx);
+        }
+        double& PreemptCountPerCore(size_t core) {
+            size_t idx = FlattenIndex(4, core);
+            return data(idx);
+        }
 
         // current CPU uer time on this core
-        double CPU_user_time(size_t core) const { return data(5, core); }
-        double& CPU_user_time(size_t core) { return data(5, core); }
+        double CPU_user_time(size_t core) const {
+            size_t idx = FlattenIndex(5, core);
+            return data(idx);
+        }
+        double& CPU_user_time(size_t core) {
+            size_t idx = FlattenIndex(5, core);
+            return data(idx);
+        }
 
         // current CPU nice time on this core
-        double CPU_nice_time(size_t core) const { return data(6, core); }
-        double& CPU_nice_time(size_t core) { return data(6, core); }
+        double CPU_nice_time(size_t core) const {
+            size_t idx = FlattenIndex(6, core);
+            return data(idx);
+        }
+        double& CPU_nice_time(size_t core) {
+            size_t idx = FlattenIndex(6, core);
+            return data(idx);
+        }
 
         // current CPU system time on this core
-        double CPU_system_time(size_t core) const { return data(7, core); }
-        double& CPU_system_time(size_t core) { return data(7, core); }
+        double CPU_system_time(size_t core) const {
+            size_t idx = FlattenIndex(7, core);
+            return data(idx);
+        }
+        double& CPU_system_time(size_t core) {
+            size_t idx = FlattenIndex(7, core);
+            return data(idx);
+        }
 
         // current CPU idle time on this core
-        double CPU_idle_time(size_t core) const { return data(8, core); }
-        double& CPU_idle_time(size_t core) { return data(8, core); }
+        double CPU_idle_time(size_t core) const {
+            size_t idx = FlattenIndex(8, core);
+            return data(idx);
+        }
+        double& CPU_idle_time(size_t core) {
+            size_t idx = FlattenIndex(8, core);
+            return data(idx);
+        }
 
         // current CPU iowait time on this core
-        double CPU_iowait_time(size_t core) const { return data(9, core); }
-        double& CPU_iowait_time(size_t core) { return data(9, core); }
+        double CPU_iowait_time(size_t core) const {
+            size_t idx = FlattenIndex(9, core);
+            return data(idx);
+        }
+        double& CPU_iowait_time(size_t core) {
+            size_t idx = FlattenIndex(9, core);
+            return data(idx);
+        }
 
         // current CPU irq time on this core
-        double CPU_irq_time(size_t core) const { return data(10, core); }
-        double& CPU_irq_time(size_t core) { return data(10, core); }
+        double CPU_irq_time(size_t core) const {
+            size_t idx = FlattenIndex(10, core);
+            return data(idx);
+        }
+        double& CPU_irq_time(size_t core) {
+            size_t idx = FlattenIndex(10, core);
+            return data(idx);
+        }
 
         // current CPU softirq time on this core
-        double CPU_softirq_time(size_t core) const { return data(11, core); }
-        double& CPU_softirq_time(size_t core) { return data(11, core); }
+        double CPU_softirq_time(size_t core) const {
+            size_t idx = FlattenIndex(11, core);
+            return data(idx);
+        }
+        double& CPU_softirq_time(size_t core) {
+            size_t idx = FlattenIndex(11, core);
+            return data(idx);
+        }
 
         // current CPU steal time on this core
-        double CPU_steal_time(size_t core) const { return data(12, core); }
-        double& CPU_steal_time(size_t core) { return data(12, core); }
+        double CPU_steal_time(size_t core) const {
+            size_t idx = FlattenIndex(12, core);
+            return data(idx);
+        }
+        double& CPU_steal_time(size_t core) {
+            size_t idx = FlattenIndex(12, core);
+            return data(idx);
+        }
 
         // current CPU queue length on this core
-        double CPU_queue_length(size_t core) const { return data(13, core); }
-        double& CPU_queue_length(size_t core) { return data(13, core); }
-
-        double GetMetricValue(size_t metricIndex, size_t coreIndex) const {
-            return data(metricIndex, coreIndex);
+        double CPU_queue_length(size_t core) const {
+            size_t idx = FlattenIndex(13, core);
+            return data(idx);
+        }
+        double& CPU_queue_length(size_t core) {
+            size_t idx = FlattenIndex(13, core);
+            return data(idx);
         }
 
-        const arma::subview_row<double> TaskResponseTime() const {
-            return data.row(0);
-        }
-        arma::subview_row<double> TaskResponseTime() { return data.row(0); }
+        // double GetMetricValue(size_t metricIndex, size_t coreIndex) const {
+        //     return data(metricIndex, coreIndex);
+        // }
 
-        const arma::subview_row<double> TaskExecTime() const {
-            return data.row(1);
+        arma::rowvec TaskResponseTime() const {
+            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::rowvec r = tmp.row(0);
+            return r;
         }
-        arma::subview_row<double> TaskExecTime() { return data.row(1); }
+        arma::rowvec TaskResponseTime() {
+            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::rowvec r = tmp.row(0);
+            return r;
+        }
 
-        const arma::subview_row<double> TaskCPUtime() const {
-            return data.row(2);
+        arma::rowvec TaskExecTime() const {
+            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::rowvec r = tmp.row(0);
+            return r;
         }
-        arma::subview_row<double> TaskCPUtime() { return data.row(2); }
+        arma::rowvec TaskExecTime() {
+            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::rowvec r = tmp.row(0);
+            return r;
+        }
 
-        const arma::subview_row<double> TaskMemory() const {
-            return data.row(3);
+        arma::rowvec TaskCPUtime() const {
+            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::rowvec r = tmp.row(0);
+            return r;
         }
-        arma::subview_row<double> TaskMemory() { return data.row(3); }
+        arma::rowvec TaskCPUtime() {
+            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::rowvec r = tmp.row(0);
+            return r;
+        }
 
-        const arma::subview_row<double> PreemptCountPerCore() const {
-            return data.row(4);
+        arma::rowvec TaskMemory() const {
+            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::rowvec r = tmp.row(0);
+            return r;
         }
-        arma::subview_row<double> PreemptCountPerCore() { return data.row(4); }
+        arma::rowvec TaskMemory() {
+            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::rowvec r = tmp.row(0);
+            return r;
+        }
 
-        const arma::subview_row<double> CPU_user_time() const {
-            return data.row(5);
+        arma::rowvec PreemptCountPerCore() const {
+            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::rowvec r = tmp.row(0);
+            return r;
         }
-        arma::subview_row<double> CPU_user_time() { return data.row(5); }
+        arma::rowvec PreemptCountPerCore() {
+            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::rowvec r = tmp.row(0);
+            return r;
+        }
 
-        const arma::subview_row<double> CPU_nice_time() const {
-            return data.row(6);
+        arma::rowvec CPU_user_time() const {
+            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::rowvec r = tmp.row(0);
+            return r;
         }
-        arma::subview_row<double> CPU_nice_time() { return data.row(6); }
+        arma::rowvec CPU_user_time() {
+            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::rowvec r = tmp.row(0);
+            return r;
+        }
 
-        const arma::subview_row<double> CPU_system_time() const {
-            return data.row(7);
+        arma::rowvec CPU_nice_time() const {
+            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::rowvec r = tmp.row(0);
+            return r;
         }
-        arma::subview_row<double> CPU_system_time() { return data.row(7); }
+        arma::rowvec CPU_nice_time() {
+            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::rowvec r = tmp.row(0);
+            return r;
+        }
 
-        const arma::subview_row<double> CPU_idle_time() const {
-            return data.row(8);
+        arma::rowvec CPU_system_time() const {
+            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::rowvec r = tmp.row(0);
+            return r;
         }
-        arma::subview_row<double> CPU_idle_time() { return data.row(8); }
+        arma::rowvec CPU_system_time() {
+            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::rowvec r = tmp.row(0);
+            return r;
+        }
 
-        const arma::subview_row<double> CPU_iowait_time() const {
-            return data.row(9);
+        arma::rowvec CPU_idle_time() const {
+            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::rowvec r = tmp.row(0);
+            return r;
         }
-        arma::subview_row<double> CPU_iowait_time() { return data.row(9); }
+        arma::rowvec CPU_idle_time() {
+            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::rowvec r = tmp.row(0);
+            return r;
+        }
 
-        const arma::subview_row<double> CPU_irq_time() const {
-            return data.row(10);
+        arma::rowvec CPU_iowait_time() const {
+            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::rowvec r = tmp.row(0);
+            return r;
         }
-        arma::subview_row<double> CPU_irq_time() { return data.row(10); }
+        arma::rowvec CPU_iowait_time() {
+            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::rowvec r = tmp.row(0);
+            return r;
+        }
 
-        const arma::subview_row<double> CPU_softirq_time() const {
-            return data.row(11);
+        arma::rowvec CPU_irq_time() const {
+            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::rowvec r = tmp.row(0);
+            return r;
         }
-        arma::subview_row<double> CPU_softirq_time() { return data.row(11); }
+        arma::rowvec CPU_irq_time() {
+            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::rowvec r = tmp.row(0);
+            return r;
+        }
 
-        const arma::subview_row<double> CPU_steal_time() const {
-            return data.row(12);
+        arma::rowvec CPU_softirq_time() const {
+            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::rowvec r = tmp.row(0);
+            return r;
         }
-        arma::subview_row<double> CPU_steal_time() { return data.row(12); }
+        arma::rowvec CPU_softirq_time() {
+            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::rowvec r = tmp.row(0);
+            return r;
+        }
 
-        const arma::subview_row<double> CPU_queue_length() const {
-            return data.row(13);
+        arma::rowvec CPU_steal_time() const {
+            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::rowvec r = tmp.row(0);
+            return r;
         }
-        arma::subview_row<double> CPU_queue_length() { return data.row(13); }
+        arma::rowvec CPU_steal_time() {
+            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::rowvec r = tmp.row(0);
+            return r;
+        }
 
-        const arma::rowvec& GetMetricRow(size_t metricIndex) const {
-            if (metricIndex >= dimension) {
-                throw std::invalid_argument(
-                    "Invalid metric index. Must be less than " + dimension);
-            }
-            return data.row(metricIndex);
+        arma::rowvec CPU_queue_length() const {
+            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::rowvec r = tmp.row(0);
+            return r;
         }
+        arma::rowvec CPU_queue_length() {
+            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::rowvec r = tmp.row(0);
+            return r;
+        }
+
+        // const arma::rowvec& GetMetricRow(size_t metricIndex) const {
+        //     if (metricIndex >= dimension) {
+        //         throw std::invalid_argument(
+        //             "Invalid metric index. Must be less than " + dimension);
+        //     }
+        //     return data.row(metricIndex);
+        // }
 
         // Set a metric's value
-        void SetMetricValue(size_t metricIndex, size_t coreIndex,
-                            double value) {
-            data(metricIndex, coreIndex) = value;
-        }
+        // void SetMetricValue(size_t metricIndex, size_t coreIndex,
+        //                     double value) {
+        //     data(metricIndex, coreIndex) = value;
+        // }
 
-        void UpdateMetrics(const arma::colvec& newMetrics) {
-            if (newMetrics.n_elem != dimension) {
-                throw std::invalid_argument(
-                    "Input metrics size does not match the state dimension.");
-            }
-            data = newMetrics;
-        }
+        // void UpdateMetrics(const arma::colvec& newMetrics) {
+        //     if (newMetrics.n_elem != dimension) {
+        //         throw std::invalid_argument(
+        //             "Input metrics size does not match the state
+        //             dimension.");
+        //     }
+        //     data = arma::reshape(newMetrics, 14, 60);
+        // }
 
         arma::mat& Data() { return data; }
         const arma::mat& Data() const { return data; }
 
         //! Encode the state to a column vector.
-        const arma::colvec& Encode() { return arma::vectorise(data); }
+        arma::colvec Encode() {
+            if (data.is_empty()) {
+                throw std::runtime_error(
+                    "Encode() error: State data is empty!");
+            }
+            arma::colvec flattenedState = arma::vectorise(data);
+            std::cout << "Flatten state size = " << flattenedState.n_elem
+                      << std::endl;
+            return flattenedState;
+        }
 
         //! Dimension of the metrics
         // size_t dimension = GetRows();
-        static constexpr size_t dimension = 14;
+        static constexpr size_t dimension = 14 * 60;
 
         //! Dimension of the number of cores
         // size_t nCores = GetCols();
@@ -220,14 +411,18 @@ class Serverless {
      * @param doneReward The reward recieved by the agent on success.
      *
      */
-    Serverless(const size_t maxSteps, const double doneReward, arma::mat& data,
-               size_t dimension, size_t nCores)
+    Serverless(const size_t maxSteps, const double doneReward,
+               const arma::mat& inputData, size_t dimension, size_t nCores)
         : maxSteps(maxSteps),
           doneReward(doneReward),
-          data(data),
+          data(inputData),
           dimension(dimension),
           nCores(nCores),
-          stepsPerformed(0) {}
+          stepsPerformed(0) {
+        std::cout << "Serverless initialized with data size: "
+                  << "rows=" << data.n_rows << ", cols=" << data.n_cols
+                  << std::endl;
+    }
 
     /**
      * Dynamics of the Serverless instance. Get reward and next state based on
@@ -243,16 +438,24 @@ class Serverless {
 
         // to do: Update the state based on the action.
         size_t dest_core = action.action;
+        std::cout << "dest_core=" << dest_core << std::endl;
         double maxTask = state.CPU_queue_length().max();
         double minTask = state.CPU_queue_length().min();
+        std::cout << "maxTask=" << maxTask << ", minTask=" << minTask
+                  << std::endl;
+        std::cout << "state.CPU_queue_length(dest_core)="
+                  << state.CPU_queue_length(dest_core) << std::endl;
         if (state.CPU_queue_length(dest_core) == maxTask) {
+            std::cout << "enter if" << std::endl;
             return -1.0;
         } else if (state.CPU_queue_length(dest_core) == minTask) {
+            std::cout << "enter else if" << std::endl;
             return 1.0;
         }
+        std::cout << "test" << std::endl;
         // corresponding core CPU_queue_length add 1
-        nextState.CPU_queue_length(dest_core) =
-            state.CPU_queue_length(dest_core) + 1;
+        // nextState.CPU_queue_length(dest_core) =
+        //     state.CPU_queue_length(dest_core) + 1;
 
         // to do: update the metrics of the next state
 
@@ -284,6 +487,8 @@ class Serverless {
      * @return the dummy state.
      */
     State InitialSample() {
+        std::cout << "In Serverless: data.n_rows=" << data.n_rows
+                  << ", data.n_cols=" << data.n_cols << std::endl;
         stepsPerformed = 0;
         return State(data);
     }
@@ -296,11 +501,12 @@ class Serverless {
      */
     bool IsTerminal(const State& state) const {
         if (maxSteps != 0 && stepsPerformed >= maxSteps) {
-            Log::Info << "Episode terminated due to the maximum number of steps"
-                      << "being taken.";
+            std::cout << "Episode terminated due to the maximum number of steps"
+                      << "being taken." << std::endl;
             return true;
         } else if (arma::all(state.CPU_queue_length() == 0.0)) {
-            Log::Info << "Episode terminated due all tasks finished.";
+            std::cout << "Episode terminated due all tasks finished."
+                      << std::endl;
             return true;
         }
         return false;
