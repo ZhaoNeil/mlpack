@@ -9,8 +9,7 @@ class Serverless {
    public:
     class State {
        public:
-        State()
-            : data(14, nCores, arma::fill::zeros) { /* nothing to do here */ }
+        State() : data(nMetrics, nCores) { /* nothing to do here */ }
 
         /**
          * Construct a state instance from given data.
@@ -19,8 +18,7 @@ class Serverless {
          */
         // State(const arma::mat& data) : data(data) { /* Nothing to do here */
         // }
-        State(const arma::mat& inputData)
-            : data(inputData.is_empty() ? arma::zeros(14, nCores) : inputData) {
+        State(const arma::mat& inputData) : data(inputData) {
             if (data.is_empty()) {
                 throw std::runtime_error(
                     "State initialization error: data is empty.");
@@ -184,155 +182,155 @@ class Serverless {
         // }
 
         arma::rowvec TaskResponseTime() const {
-            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::mat tmp = arma::reshape(data, nMetrics, nCores);
             arma::rowvec r = tmp.row(0);
             return r;
         }
         arma::rowvec TaskResponseTime() {
-            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::mat tmp = arma::reshape(data, nMetrics, nCores);
             arma::rowvec r = tmp.row(0);
             return r;
         }
 
         arma::rowvec TaskExecTime() const {
-            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::mat tmp = arma::reshape(data, nMetrics, nCores);
             arma::rowvec r = tmp.row(0);
             return r;
         }
         arma::rowvec TaskExecTime() {
-            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::mat tmp = arma::reshape(data, nMetrics, nCores);
             arma::rowvec r = tmp.row(0);
             return r;
         }
 
         arma::rowvec TaskCPUtime() const {
-            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::mat tmp = arma::reshape(data, nMetrics, nCores);
             arma::rowvec r = tmp.row(0);
             return r;
         }
         arma::rowvec TaskCPUtime() {
-            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::mat tmp = arma::reshape(data, nMetrics, nCores);
             arma::rowvec r = tmp.row(0);
             return r;
         }
 
         arma::rowvec TaskMemory() const {
-            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::mat tmp = arma::reshape(data, nMetrics, nCores);
             arma::rowvec r = tmp.row(0);
             return r;
         }
         arma::rowvec TaskMemory() {
-            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::mat tmp = arma::reshape(data, nMetrics, nCores);
             arma::rowvec r = tmp.row(0);
             return r;
         }
 
         arma::rowvec PreemptCountPerCore() const {
-            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::mat tmp = arma::reshape(data, nMetrics, nCores);
             arma::rowvec r = tmp.row(0);
             return r;
         }
         arma::rowvec PreemptCountPerCore() {
-            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::mat tmp = arma::reshape(data, nMetrics, nCores);
             arma::rowvec r = tmp.row(0);
             return r;
         }
 
         arma::rowvec CPU_user_time() const {
-            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::mat tmp = arma::reshape(data, nMetrics, nCores);
             arma::rowvec r = tmp.row(0);
             return r;
         }
         arma::rowvec CPU_user_time() {
-            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::mat tmp = arma::reshape(data, nMetrics, nCores);
             arma::rowvec r = tmp.row(0);
             return r;
         }
 
         arma::rowvec CPU_nice_time() const {
-            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::mat tmp = arma::reshape(data, nMetrics, nCores);
             arma::rowvec r = tmp.row(0);
             return r;
         }
         arma::rowvec CPU_nice_time() {
-            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::mat tmp = arma::reshape(data, nMetrics, nCores);
             arma::rowvec r = tmp.row(0);
             return r;
         }
 
         arma::rowvec CPU_system_time() const {
-            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::mat tmp = arma::reshape(data, nMetrics, nCores);
             arma::rowvec r = tmp.row(0);
             return r;
         }
         arma::rowvec CPU_system_time() {
-            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::mat tmp = arma::reshape(data, nMetrics, nCores);
             arma::rowvec r = tmp.row(0);
             return r;
         }
 
         arma::rowvec CPU_idle_time() const {
-            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::mat tmp = arma::reshape(data, nMetrics, nCores);
             arma::rowvec r = tmp.row(0);
             return r;
         }
         arma::rowvec CPU_idle_time() {
-            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::mat tmp = arma::reshape(data, nMetrics, nCores);
             arma::rowvec r = tmp.row(0);
             return r;
         }
 
         arma::rowvec CPU_iowait_time() const {
-            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::mat tmp = arma::reshape(data, nMetrics, nCores);
             arma::rowvec r = tmp.row(0);
             return r;
         }
         arma::rowvec CPU_iowait_time() {
-            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::mat tmp = arma::reshape(data, nMetrics, nCores);
             arma::rowvec r = tmp.row(0);
             return r;
         }
 
         arma::rowvec CPU_irq_time() const {
-            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::mat tmp = arma::reshape(data, nMetrics, nCores);
             arma::rowvec r = tmp.row(0);
             return r;
         }
         arma::rowvec CPU_irq_time() {
-            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::mat tmp = arma::reshape(data, nMetrics, nCores);
             arma::rowvec r = tmp.row(0);
             return r;
         }
 
         arma::rowvec CPU_softirq_time() const {
-            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::mat tmp = arma::reshape(data, nMetrics, nCores);
             arma::rowvec r = tmp.row(0);
             return r;
         }
         arma::rowvec CPU_softirq_time() {
-            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::mat tmp = arma::reshape(data, nMetrics, nCores);
             arma::rowvec r = tmp.row(0);
             return r;
         }
 
         arma::rowvec CPU_steal_time() const {
-            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::mat tmp = arma::reshape(data, nMetrics, nCores);
             arma::rowvec r = tmp.row(0);
             return r;
         }
         arma::rowvec CPU_steal_time() {
-            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::mat tmp = arma::reshape(data, nMetrics, nCores);
             arma::rowvec r = tmp.row(0);
             return r;
         }
 
         arma::rowvec CPU_queue_length() const {
-            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::mat tmp = arma::reshape(data, nMetrics, nCores);
             arma::rowvec r = tmp.row(0);
             return r;
         }
         arma::rowvec CPU_queue_length() {
-            arma::mat tmp = arma::reshape(data, 14, nCores);
+            arma::mat tmp = arma::reshape(data, nMetrics, nCores);
             arma::rowvec r = tmp.row(0);
             return r;
         }
@@ -375,17 +373,11 @@ class Serverless {
             return flattenedState;
         }
 
-        //! Dimension of the metrics
-        // size_t dimension = GetRows();
         static constexpr size_t dimension = 14 * 60;
 
-        //! Dimension of the number of cores
-        // size_t nCores = GetCols();
         static constexpr size_t nCores = 60;
 
-        size_t GetRows() const { return data.n_rows; }
-
-        size_t GetCols() const { return data.n_cols; }
+        static constexpr size_t nMetrics = 14;
 
        private:
         //! Locally-stored state data.
@@ -412,16 +404,17 @@ class Serverless {
      *
      */
     Serverless(const size_t maxSteps, const double doneReward,
-               const arma::mat& inputData, size_t dimension, size_t nCores)
+               const arma::mat& inputData, size_t inputMetrics,
+               size_t inputCores)
         : maxSteps(maxSteps),
           doneReward(doneReward),
-          data(inputData),
-          dimension(dimension),
-          nCores(nCores),
+          serverlessData(inputData),
+          serverlessMetrics(inputMetrics),
+          serverlessCores(inputCores),
           stepsPerformed(0) {
         std::cout << "Serverless initialized with data size: "
-                  << "rows=" << data.n_rows << ", cols=" << data.n_cols
-                  << std::endl;
+                  << "rows=" << serverlessData.n_rows
+                  << ", cols=" << serverlessData.n_cols << std::endl;
     }
 
     /**
@@ -487,10 +480,10 @@ class Serverless {
      * @return the dummy state.
      */
     State InitialSample() {
-        std::cout << "In Serverless: data.n_rows=" << data.n_rows
-                  << ", data.n_cols=" << data.n_cols << std::endl;
+        std::cout << "In Serverless: data.n_rows=" << serverlessData.n_rows
+                  << ", data.n_cols=" << serverlessData.n_cols << std::endl;
         stepsPerformed = 0;
-        return State(data);
+        return State(serverlessData);
     }
 
     /**
@@ -531,13 +524,13 @@ class Serverless {
     size_t stepsPerformed;
 
     // Locally-stored data.
-    arma::mat data;
+    arma::mat serverlessData;
 
     // Dimension of the metrics
-    size_t dimension = data.n_rows;
+    size_t serverlessMetrics;
 
     // Dimension of the number of cores
-    size_t nCores = data.n_cols;
+    size_t serverlessCores;
 };
 }  // namespace mlpack
 
