@@ -335,29 +335,6 @@ class Serverless {
             return r;
         }
 
-        // const arma::rowvec& GetMetricRow(size_t metricIndex) const {
-        //     if (metricIndex >= dimension) {
-        //         throw std::invalid_argument(
-        //             "Invalid metric index. Must be less than " + dimension);
-        //     }
-        //     return data.row(metricIndex);
-        // }
-
-        // Set a metric's value
-        // void SetMetricValue(size_t metricIndex, size_t coreIndex,
-        //                     double value) {
-        //     data(metricIndex, coreIndex) = value;
-        // }
-
-        // void UpdateMetrics(const arma::colvec& newMetrics) {
-        //     if (newMetrics.n_elem != dimension) {
-        //         throw std::invalid_argument(
-        //             "Input metrics size does not match the state
-        //             dimension.");
-        //     }
-        //     data = arma::reshape(newMetrics, 14, 60);
-        // }
-
         arma::mat& Data() { return data; }
         const arma::mat& Data() const { return data; }
 
@@ -368,8 +345,6 @@ class Serverless {
                     "Encode() error: State data is empty!");
             }
             arma::colvec flattenedState = arma::vectorise(data);
-            std::cout << "Flatten state size = " << flattenedState.n_elem
-                      << std::endl;
             return flattenedState;
         }
 
@@ -411,10 +386,10 @@ class Serverless {
           serverlessData(inputData),
           serverlessMetrics(inputMetrics),
           serverlessCores(inputCores),
-          stepsPerformed(0) {
-        std::cout << "Serverless initialized with data size: "
-                  << "rows=" << serverlessData.n_rows
-                  << ", cols=" << serverlessData.n_cols << std::endl;
+          stepsPerformed(0) {}
+
+    void UpdateData(const arma::mat& newData) {
+        serverlessData = newData;  // Safe and efficient assignment
     }
 
     /**
@@ -432,33 +407,25 @@ class Serverless {
         // to do: Update the state based on the action.
         size_t dest_core = action.action;
         std::cout << "dest_core=" << dest_core << std::endl;
+
         double maxTask = state.CPU_queue_length().max();
         double minTask = state.CPU_queue_length().min();
-        std::cout << "maxTask=" << maxTask << ", minTask=" << minTask
-                  << std::endl;
-        std::cout << "state.CPU_queue_length(dest_core)="
-                  << state.CPU_queue_length(dest_core) << std::endl;
+
         if (state.CPU_queue_length(dest_core) == maxTask) {
-            std::cout << "enter if" << std::endl;
             return -1.0;
         } else if (state.CPU_queue_length(dest_core) == minTask) {
-            std::cout << "enter else if" << std::endl;
             return 1.0;
         }
-        std::cout << "test" << std::endl;
-        // corresponding core CPU_queue_length add 1
-        // nextState.CPU_queue_length(dest_core) =
-        //     state.CPU_queue_length(dest_core) + 1;
 
-        // to do: update the metrics of the next state
+        // Correctly modify nextState here, example:
+        nextState.CPU_queue_length(dest_core) += 1;
 
         bool done = IsTerminal(nextState);
-
         if (done && maxSteps != 0 && stepsPerformed >= maxSteps) {
             return doneReward;
         }
 
-        return 1.0;
+        return -1;
     }
 
     /**
@@ -480,8 +447,6 @@ class Serverless {
      * @return the dummy state.
      */
     State InitialSample() {
-        std::cout << "In Serverless: data.n_rows=" << serverlessData.n_rows
-                  << ", data.n_cols=" << serverlessData.n_cols << std::endl;
         stepsPerformed = 0;
         return State(serverlessData);
     }
