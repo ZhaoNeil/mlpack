@@ -194,144 +194,144 @@ class Serverless {
 
         arma::rowvec TaskExecTime() const {
             arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-            arma::rowvec r = tmp.row(0);
+            arma::rowvec r = tmp.row(1);
             return r;
         }
         arma::rowvec TaskExecTime() {
             arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-            arma::rowvec r = tmp.row(0);
+            arma::rowvec r = tmp.row(1);
             return r;
         }
 
         arma::rowvec TaskCPUtime() const {
             arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-            arma::rowvec r = tmp.row(0);
+            arma::rowvec r = tmp.row(2);
             return r;
         }
         arma::rowvec TaskCPUtime() {
             arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-            arma::rowvec r = tmp.row(0);
+            arma::rowvec r = tmp.row(2);
             return r;
         }
 
         arma::rowvec TaskMemory() const {
             arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-            arma::rowvec r = tmp.row(0);
+            arma::rowvec r = tmp.row(3);
             return r;
         }
         arma::rowvec TaskMemory() {
             arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-            arma::rowvec r = tmp.row(0);
+            arma::rowvec r = tmp.row(3);
             return r;
         }
 
         arma::rowvec PreemptCountPerCore() const {
             arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-            arma::rowvec r = tmp.row(0);
+            arma::rowvec r = tmp.row(4);
             return r;
         }
         arma::rowvec PreemptCountPerCore() {
             arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-            arma::rowvec r = tmp.row(0);
+            arma::rowvec r = tmp.row(4);
             return r;
         }
 
         arma::rowvec CPU_user_time() const {
             arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-            arma::rowvec r = tmp.row(0);
+            arma::rowvec r = tmp.row(5);
             return r;
         }
         arma::rowvec CPU_user_time() {
             arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-            arma::rowvec r = tmp.row(0);
+            arma::rowvec r = tmp.row(5);
             return r;
         }
 
         arma::rowvec CPU_nice_time() const {
             arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-            arma::rowvec r = tmp.row(0);
+            arma::rowvec r = tmp.row(6);
             return r;
         }
         arma::rowvec CPU_nice_time() {
             arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-            arma::rowvec r = tmp.row(0);
+            arma::rowvec r = tmp.row(6);
             return r;
         }
 
         arma::rowvec CPU_system_time() const {
             arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-            arma::rowvec r = tmp.row(0);
+            arma::rowvec r = tmp.row(7);
             return r;
         }
         arma::rowvec CPU_system_time() {
             arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-            arma::rowvec r = tmp.row(0);
+            arma::rowvec r = tmp.row(7);
             return r;
         }
 
         arma::rowvec CPU_idle_time() const {
             arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-            arma::rowvec r = tmp.row(0);
+            arma::rowvec r = tmp.row(8);
             return r;
         }
         arma::rowvec CPU_idle_time() {
             arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-            arma::rowvec r = tmp.row(0);
+            arma::rowvec r = tmp.row(8);
             return r;
         }
 
         arma::rowvec CPU_iowait_time() const {
             arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-            arma::rowvec r = tmp.row(0);
+            arma::rowvec r = tmp.row(9);
             return r;
         }
         arma::rowvec CPU_iowait_time() {
             arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-            arma::rowvec r = tmp.row(0);
+            arma::rowvec r = tmp.row(9);
             return r;
         }
 
         arma::rowvec CPU_irq_time() const {
             arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-            arma::rowvec r = tmp.row(0);
+            arma::rowvec r = tmp.row(10);
             return r;
         }
         arma::rowvec CPU_irq_time() {
             arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-            arma::rowvec r = tmp.row(0);
+            arma::rowvec r = tmp.row(10);
             return r;
         }
 
         arma::rowvec CPU_softirq_time() const {
             arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-            arma::rowvec r = tmp.row(0);
+            arma::rowvec r = tmp.row(11);
             return r;
         }
         arma::rowvec CPU_softirq_time() {
             arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-            arma::rowvec r = tmp.row(0);
+            arma::rowvec r = tmp.row(11);
             return r;
         }
 
         arma::rowvec CPU_steal_time() const {
             arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-            arma::rowvec r = tmp.row(0);
+            arma::rowvec r = tmp.row(12);
             return r;
         }
         arma::rowvec CPU_steal_time() {
             arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-            arma::rowvec r = tmp.row(0);
+            arma::rowvec r = tmp.row(12);
             return r;
         }
 
         arma::rowvec CPU_queue_length() const {
             arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-            arma::rowvec r = tmp.row(0);
+            arma::rowvec r = tmp.row(13);
             return r;
         }
         arma::rowvec CPU_queue_length() {
             arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-            arma::rowvec r = tmp.row(0);
+            arma::rowvec r = tmp.row(13);
             return r;
         }
 
@@ -408,17 +408,17 @@ class Serverless {
         size_t dest_core = action.action;
         std::cout << "dest_core=" << dest_core << std::endl;
 
-        double maxTask = state.CPU_queue_length().max();
-        double minTask = state.CPU_queue_length().min();
+        // double maxTask = state.CPU_queue_length().max();
+        // double minTask = state.CPU_queue_length().min();
 
-        if (state.CPU_queue_length(dest_core) == maxTask) {
-            return -1.0;
-        } else if (state.CPU_queue_length(dest_core) == minTask) {
-            return 1.0;
-        }
+        // if (state.CPU_queue_length(dest_core) == maxTask) {
+        //     return -1.0;
+        // } else if (state.CPU_queue_length(dest_core) == minTask) {
+        //     return 1.0;
+        // }
 
         // Correctly modify nextState here, example:
-        nextState.CPU_queue_length(dest_core) += 1;
+        // nextState.CPU_queue_length(dest_core) += 1;
 
         bool done = IsTerminal(nextState);
         if (done && maxSteps != 0 && stepsPerformed >= maxSteps) {
@@ -462,7 +462,7 @@ class Serverless {
             std::cout << "Episode terminated due to the maximum number of steps"
                       << "being taken." << std::endl;
             return true;
-        } else if (arma::all(state.CPU_queue_length() == 0.0)) {
+        } else {
             std::cout << "Episode terminated due all tasks finished."
                       << std::endl;
             return true;
