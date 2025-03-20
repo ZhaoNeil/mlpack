@@ -403,6 +403,11 @@ class Serverless {
      */
     double Sample(const State& state, const Action& action, State& nextState) {
         stepsPerformed++;
+        std::cout << "stepsPerformed= " << stepsPerformed << std::endl;
+        // nextState = state;
+        // nextState.Data() = nextState.Data().eval();
+        // nextState = State(state.Data().eval());
+        // std::cout << nextState.Data() << std::endl;
 
         // to do: Update the state based on the action.
         size_t dest_core = action.action;
@@ -421,6 +426,7 @@ class Serverless {
         // nextState.CPU_queue_length(dest_core) += 1;
 
         bool done = IsTerminal(nextState);
+        std::cout << "done= " << done << std::endl;
         if (done && maxSteps != 0 && stepsPerformed >= maxSteps) {
             return doneReward;
         }
@@ -437,7 +443,9 @@ class Serverless {
      * @return reward,
      */
     double Sample(const State& state, const Action& action) {
+        std::cout << "calling Sample(State, Action)" << std::endl;
         State nextState;
+        std::cout << "finished calling Sample(State, Action)" << std::endl;
         return Sample(state, action, nextState);
     }
 
@@ -462,9 +470,7 @@ class Serverless {
             std::cout << "Episode terminated due to the maximum number of steps"
                       << "being taken." << std::endl;
             return true;
-        } else {
-            std::cout << "Episode terminated due all tasks finished."
-                      << std::endl;
+        } else if (state.CPU_queue_length(0) > 10) {
             return true;
         }
         return false;
