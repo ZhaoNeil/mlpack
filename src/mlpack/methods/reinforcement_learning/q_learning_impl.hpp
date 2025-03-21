@@ -63,7 +63,7 @@ template <typename EnvironmentType, typename NetworkType, typename UpdaterType,
 QLearning<EnvironmentType, NetworkType, UpdaterType, PolicyType,
           ReplayType>::~QLearning() {
 #if ENS_VERSION_MAJOR >= 2
-    delete updatePolicy;
+    // delete updatePolicy;
 #endif
 }
 
@@ -296,6 +296,7 @@ double QLearning<EnvironmentType, NetworkType, UpdaterType, BehaviorPolicyType,
         else
             TrainAgent();
     }
+    std::cout << "totalReturn=" << totalReturn << std::endl;
     return totalReturn;
 }
 

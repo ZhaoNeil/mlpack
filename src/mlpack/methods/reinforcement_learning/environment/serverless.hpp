@@ -23,6 +23,8 @@ class Serverless {
                 throw std::runtime_error(
                     "State initialization error: data is empty.");
             }
+            // data = inputData;
+            // data = data + 0.0;
         }
 
         inline size_t FlattenIndex(size_t row, size_t col) const {
@@ -404,7 +406,6 @@ class Serverless {
     double Sample(const State& state, const Action& action, State& nextState) {
         stepsPerformed++;
         std::cout << "stepsPerformed= " << stepsPerformed << std::endl;
-        // nextState = state;
         // nextState.Data() = nextState.Data().eval();
         // nextState = State(state.Data().eval());
         // std::cout << nextState.Data() << std::endl;
@@ -423,13 +424,14 @@ class Serverless {
         // }
 
         // Correctly modify nextState here, example:
-        // nextState.CPU_queue_length(dest_core) += 1;
+        nextState.CPU_queue_length(dest_core) += 1;
 
         bool done = IsTerminal(nextState);
         std::cout << "done= " << done << std::endl;
         if (done && maxSteps != 0 && stepsPerformed >= maxSteps) {
             return doneReward;
         }
+        std::cout << "test" << std::endl;
 
         return -1;
     }
