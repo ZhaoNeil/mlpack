@@ -1,6 +1,11 @@
 #ifndef MLPACK_METHODS_RL_ENVIRONMENT_SERVERLESS_HPP
 #define MLPACK_METHODS_RL_ENVIRONMENT_SERVERLESS_HPP
 
+#include <fcntl.h>
+#include <semaphore.h>
+#include <sys/mman.h>
+#include <unistd.h>
+
 #include <mlpack/core.hpp>
 
 namespace mlpack {
@@ -23,8 +28,20 @@ class Serverless {
                 throw std::runtime_error(
                     "State initialization error: data is empty.");
             }
-            // data = inputData;
-            // data = data + 0.0;
+            // std::cout << "TaskResponseTime=" << data.row(0) << std::endl;
+            // std::cout << "TaskExecTime=" << data.row(1) << std::endl;
+            // std::cout << "TaskCPUtime=" << data.row(2) << std::endl;
+            // std::cout << "TaskMemory=" << data.row(3) << std::endl;
+            // std::cout << "PreemptCountPerCore=" << data.row(4) << std::endl;
+            // std::cout << "CPU_user_time=" << data.row(5) << std::endl;
+            // std::cout << "CPU_nice_time=" << data.row(6) << std::endl;
+            // std::cout << "CPU_system_time=" << data.row(7) << std::endl;
+            // std::cout << "CPU_idle_time=" << data.row(8) << std::endl;
+            // std::cout << "CPU_iowait_time=" << data.row(9) << std::endl;
+            // std::cout << "CPU_irq_time=" << data.row(10) << std::endl;
+            // std::cout << "CPU_softirq_time=" << data.row(11) << std::endl;
+            // std::cout << "CPU_steal_time=" << data.row(12) << std::endl;
+            // std::cout << "CPU_queue_length=" << data.row(13) << std::endl;
         }
 
         inline size_t FlattenIndex(size_t row, size_t col) const {
@@ -394,6 +411,115 @@ class Serverless {
         serverlessData = newData;  // Safe and efficient assignment
     }
 
+    arma::mat GetLatestEnvironmentMetrics(const std::string& shm_name,
+                                          const std::string& sem_name) {
+        sem_t* sem = sem_open(sem_name.c_str(), 0);
+        if (sem == SEM_FAILED) {
+            perror("sem_open");
+            return arma::mat();
+        }
+
+        sem_wait(sem);
+
+        size_t header_size = 2 * sizeof(size_t);
+
+        int shm_fd = shm_open(shm_name.c_str(), O_RDONLY, 0666);
+        if (shm_fd == -1) {
+            perror("shm_open");
+            sem_post(sem);
+            return arma::mat();
+        }
+
+        void* header_ptr =
+            mmap(0, header_size, PROT_READ, MAP_SHARED, shm_fd, 0);
+        if (header_ptr == MAP_FAILED) {
+            perror("mmap header");
+            close(shm_fd);
+            sem_post(sem);
+            return arma::mat();
+        }
+
+        size_t rows, cols;
+        std::memcpy(&rows, header_ptr, sizeof(size_t));
+        std::memcpy(&cols, (char*)header_ptr + sizeof(size_t), sizeof(size_t));
+        munmap(header_ptr, header_size);
+
+        size_t data_size = rows * cols * sizeof(double);
+        size_t total_size = header_size + data_size;
+
+        void* ptr = mmap(0, total_size, PROT_READ, MAP_SHARED, shm_fd, 0);
+        if (ptr == MAP_FAILED) {
+            perror("mmap full");
+            close(shm_fd);
+            sem_post(sem);
+            return arma::mat();
+        }
+
+        arma::mat result(rows, cols);
+        std::memcpy(result.memptr(), (char*)ptr + header_size, data_size);
+
+        munmap(ptr, total_size);
+        close(shm_fd);
+
+        sem_post(sem);
+        sem_close(sem);
+
+        std::cout << "Data read safely." << std::endl;
+
+        return result;
+    }
+
+    double GetScore(const State& state) {
+        double responseTime = arma::accu(state.TaskResponseTime());
+        std::cout << "responseTime=" << responseTime << std::endl;
+        double execTime = arma::accu(state.TaskExecTime());
+        std::cout << "execTime=" << execTime << std::endl;
+        double cpuTime = arma::accu(state.TaskCPUtime());
+        std::cout << "cpuTime=" << cpuTime << std::endl;
+        double memoryUsage = arma::accu(state.TaskMemory());
+        std::cout << "memoryUsage=" << memoryUsage << std::endl;
+        double preemptions = arma::accu(state.PreemptCountPerCore());
+        std::cout << "preemptions=" << preemptions << std::endl;
+        double queueLength = arma::accu(state.CPU_queue_length());
+        std::cout << "queueLength=" << queueLength << std::endl;
+
+        double userTime = arma::accu(state.CPU_user_time());
+        std::cout << "userTime=" << userTime << std::endl;
+        double niceTime = arma::accu(state.CPU_nice_time());
+        std::cout << "niceTime=" << niceTime << std::endl;
+        double systemTime = arma::accu(state.CPU_system_time());
+        std::cout << "systemTime=" << systemTime << std::endl;
+        double idleTime = arma::accu(state.CPU_idle_time());
+        std::cout << "idleTime=" << idleTime << std::endl;
+        double iowaitTime = arma::accu(state.CPU_iowait_time());
+        std::cout << "iowaitTime=" << iowaitTime << std::endl;
+        double irqTime = arma::accu(state.CPU_irq_time());
+        std::cout << "irqTime=" << irqTime << std::endl;
+        double softirqTime = arma::accu(state.CPU_softirq_time());
+        std::cout << "softirqTime=" << softirqTime << std::endl;
+        double stealTime = arma::accu(state.CPU_steal_time());
+        std::cout << "stealTime=" << stealTime << std::endl;
+
+        double busyTime =
+            userTime + niceTime + systemTime + irqTime + softirqTime;
+        double totalTime = busyTime + idleTime + iowaitTime + stealTime;
+        double utilization = (totalTime > 0) ? busyTime / totalTime : 0.0;
+
+        double w1 = 1.0;   // Response time
+        double w2 = 1.0;   // Exec time
+        double w3 = 0.1;   // CPU time
+        double w4 = 0.05;  // Memory
+        double w5 = 0.1;   // Preemptions
+        double w6 = 0.1;   // Queue length
+        double w7 = 0.1;   // CPU utilization
+
+        double score = -(w1 * responseTime + w2 * execTime);
+        score -= (w3 * cpuTime + w4 * memoryUsage + w5 * preemptions +
+                  w6 * queueLength + w7 * utilization);
+
+        return score;
+    }
+
     /**
      * Dynamics of the Serverless instance. Get reward and next state based on
      * current state and current action.
@@ -406,34 +532,32 @@ class Serverless {
     double Sample(const State& state, const Action& action, State& nextState) {
         stepsPerformed++;
         std::cout << "stepsPerformed= " << stepsPerformed << std::endl;
-        // nextState.Data() = nextState.Data().eval();
-        // nextState = State(state.Data().eval());
-        // std::cout << nextState.Data() << std::endl;
 
-        // to do: Update the state based on the action.
         size_t dest_core = action.action;
         std::cout << "dest_core=" << dest_core << std::endl;
 
-        // double maxTask = state.CPU_queue_length().max();
-        // double minTask = state.CPU_queue_length().min();
+        std::string shm = "/data";
+        std::string semaphore = "/semaphore";
 
-        // if (state.CPU_queue_length(dest_core) == maxTask) {
-        //     return -1.0;
-        // } else if (state.CPU_queue_length(dest_core) == minTask) {
-        //     return 1.0;
-        // }
+        arma::mat latestdata = GetLatestEnvironmentMetrics(shm, semaphore);
+        nextState = State(latestdata);
 
-        // Correctly modify nextState here, example:
-        nextState.CPU_queue_length(dest_core) += 1;
+        double state_score = GetScore(state);
+        double next_state_score = GetScore(nextState);
+        std::cout << "state_score=" << state_score << std::endl;
+        std::cout << "next_state_score=" << next_state_score << std::endl;
 
         bool done = IsTerminal(nextState);
-        std::cout << "done= " << done << std::endl;
         if (done && maxSteps != 0 && stepsPerformed >= maxSteps) {
             return doneReward;
         }
-        std::cout << "test" << std::endl;
 
-        return -1;
+        if (next_state_score > state_score)
+            return 1.0;
+        else if (next_state_score < state_score)
+            return -1.0;
+        else
+            return 0.0;
     }
 
     /**
