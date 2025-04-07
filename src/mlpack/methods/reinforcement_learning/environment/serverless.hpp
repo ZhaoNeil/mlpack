@@ -6,6 +6,7 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
+#include <mlpack.hpp>
 #include <mlpack/core.hpp>
 
 namespace mlpack {
@@ -411,62 +412,9 @@ class Serverless {
         serverlessData = newData;  // Safe and efficient assignment
     }
 
-    arma::mat GetLatestEnvironmentMetrics(const std::string& shm_name,
-                                          const std::string& sem_name) {
-        sem_t* sem = sem_open(sem_name.c_str(), 0);
-        if (sem == SEM_FAILED) {
-            perror("sem_open");
-            return arma::mat();
-        }
-
-        sem_wait(sem);
-
-        size_t header_size = 2 * sizeof(size_t);
-
-        int shm_fd = shm_open(shm_name.c_str(), O_RDONLY, 0666);
-        if (shm_fd == -1) {
-            perror("shm_open");
-            sem_post(sem);
-            return arma::mat();
-        }
-
-        void* header_ptr =
-            mmap(0, header_size, PROT_READ, MAP_SHARED, shm_fd, 0);
-        if (header_ptr == MAP_FAILED) {
-            perror("mmap header");
-            close(shm_fd);
-            sem_post(sem);
-            return arma::mat();
-        }
-
-        size_t rows, cols;
-        std::memcpy(&rows, header_ptr, sizeof(size_t));
-        std::memcpy(&cols, (char*)header_ptr + sizeof(size_t), sizeof(size_t));
-        munmap(header_ptr, header_size);
-
-        size_t data_size = rows * cols * sizeof(double);
-        size_t total_size = header_size + data_size;
-
-        void* ptr = mmap(0, total_size, PROT_READ, MAP_SHARED, shm_fd, 0);
-        if (ptr == MAP_FAILED) {
-            perror("mmap full");
-            close(shm_fd);
-            sem_post(sem);
-            return arma::mat();
-        }
-
-        arma::mat result(rows, cols);
-        std::memcpy(result.memptr(), (char*)ptr + header_size, data_size);
-
-        munmap(ptr, total_size);
-        close(shm_fd);
-
-        sem_post(sem);
-        sem_close(sem);
-
-        std::cout << "Data read safely." << std::endl;
-
-        return result;
+    arma::mat GetLatestEnvironmentMetrics(const SharedData& sharedData) {
+        arma::mat data = sharedData.getData();
+        return data;
     }
 
     double GetScore(const State& state) {
@@ -536,10 +484,7 @@ class Serverless {
         size_t dest_core = action.action;
         std::cout << "dest_core=" << dest_core << std::endl;
 
-        std::string shm = "/data";
-        std::string semaphore = "/semaphore";
-
-        arma::mat latestdata = GetLatestEnvironmentMetrics(shm, semaphore);
+        arma::mat latestdata = GetLatestEnvironmentMetrics(sharedData);
         nextState = State(latestdata);
 
         double state_score = GetScore(state);

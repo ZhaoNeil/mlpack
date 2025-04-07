@@ -21,10 +21,53 @@
 #ifndef MLPACK_HPP
 #define MLPACK_HPP
 
+#include <armadillo>
+
+class SharedData {
+   private:
+    arma::mat data;
+    size_t nMetrics;
+    size_t nCores;
+
+   public:
+    SharedData(size_t metrics, size_t cores)
+        : nMetrics(metrics),
+          nCores(cores),
+          data(nMetrics, nCores, arma::fill::zeros) {}
+
+    size_t getNMetrics() const { return nMetrics; }
+
+    size_t getNCores() const { return nCores; }
+
+    const arma::mat& getData() const { return data; }
+
+    void setNMetrics(size_t metrics) {
+        nMetrics = metrics;
+        data.set_size(nMetrics, nCores);
+        data.zeros();
+    }
+
+    void setNCores(size_t cores) {
+        nCores = cores;
+        data.set_size(nMetrics, nCores);
+        data.zeros();
+    }
+
+    void setData(const arma::mat& newData) {
+        if (newData.n_rows == nMetrics && newData.n_cols == nCores) {
+            data = newData;
+        } else {
+            data = newData;
+        }
+    }
+};
+
+extern SharedData sharedData;
+
 // Include all of the core library components.
 #include "mlpack/base.hpp"
-#include "mlpack/prereqs.hpp"
 #include "mlpack/core.hpp"
+#include "mlpack/prereqs.hpp"
 
 // Now include all of the methods.
 #include "mlpack/methods/adaboost.hpp"
