@@ -60,6 +60,19 @@ class SharedData {
             data = newData;
         }
     }
+
+    void setValue(size_t metricIndex, size_t coreIndex, double value) {
+        if (metricIndex < nMetrics && coreIndex < nCores) {
+            data(metricIndex, coreIndex) = value;
+        }
+    }
+
+    double getValue(size_t metricIndex, size_t coreIndex) const {
+        if (metricIndex < nMetrics && coreIndex < nCores) {
+            return data(metricIndex, coreIndex);
+        }
+        return 0.0;
+    }
 };
 
 extern SharedData sharedData;
