@@ -23,51 +23,45 @@
 
 #include <armadillo>
 
+#include <mutex>
+
 class SharedData {
-   private:
+private:
     arma::mat data;
     size_t nMetrics;
     size_t nCores;
+    mutable std::mutex mutex_;  // mutable so we can lock in const methods as well.
 
-   public:
+public:
     SharedData(size_t metrics, size_t cores)
         : nMetrics(metrics),
           nCores(cores),
           data(nMetrics, nCores, arma::fill::zeros) {}
 
-    size_t getNMetrics() const { return nMetrics; }
-
-    size_t getNCores() const { return nCores; }
-
-    const arma::mat& getData() const { return data; }
-
-    void setNMetrics(size_t metrics) {
-        nMetrics = metrics;
-        data.set_size(nMetrics, nCores);
-        data.zeros();
-    }
-
-    void setNCores(size_t cores) {
-        nCores = cores;
-        data.set_size(nMetrics, nCores);
-        data.zeros();
+    arma::mat getData() const {
+        std::lock_guard<std::mutex> lock(mutex_);
+        return data;
     }
 
     void setData(const arma::mat& newData) {
+        std::lock_guard<std::mutex> lock(mutex_);
         if (newData.n_rows == nMetrics && newData.n_cols == nCores) {
             data = newData;
         } else {
-            data = newData;
+            // Potentially handle mismatch here, or just assign as you do now.
+            data = newData;  // Possibly resizing here if that’s appropriate.
         }
     }
 
     void setValue(size_t metricIndex, size_t coreIndex, double value) {
+        std::lock_guard<std::mutex> lock(mutex_);
         if (metricIndex < nMetrics && coreIndex < nCores) {
             data(metricIndex, coreIndex) = value;
         }
     }
 
     double getValue(size_t metricIndex, size_t coreIndex) const {
+        std::lock_guard<std::mutex> lock(mutex_);
         if (metricIndex < nMetrics && coreIndex < nCores) {
             return data(metricIndex, coreIndex);
         }
