@@ -30,7 +30,6 @@ private:
     arma::mat data;
     size_t nMetrics;
     size_t nCores;
-    mutable std::mutex mutex_;  // mutable so we can lock in const methods as well.
 
 public:
     SharedData(size_t metrics, size_t cores)
@@ -39,12 +38,10 @@ public:
           data(nMetrics, nCores, arma::fill::zeros) {}
 
     arma::mat getData() const {
-        std::lock_guard<std::mutex> lock(mutex_);
         return data;
     }
 
     void setData(const arma::mat& newData) {
-        std::lock_guard<std::mutex> lock(mutex_);
         if (newData.n_rows == nMetrics && newData.n_cols == nCores) {
             data = newData;
         } else {
@@ -54,14 +51,12 @@ public:
     }
 
     void setValue(size_t metricIndex, size_t coreIndex, double value) {
-        std::lock_guard<std::mutex> lock(mutex_);
         if (metricIndex < nMetrics && coreIndex < nCores) {
             data(metricIndex, coreIndex) = value;
         }
     }
 
     double getValue(size_t metricIndex, size_t coreIndex) const {
-        std::lock_guard<std::mutex> lock(mutex_);
         if (metricIndex < nMetrics && coreIndex < nCores) {
             return data(metricIndex, coreIndex);
         }
