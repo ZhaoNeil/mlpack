@@ -413,7 +413,9 @@ class Serverless {
     }
 
     arma::mat GetLatestEnvironmentMetrics(const SharedData& sharedData) {
+        sharedDataMutex_.Lock();
         arma::mat data = sharedData.getData();
+        sharedDataMutex_.Unlock();
         return data;
     }
 
@@ -421,32 +423,32 @@ class Serverless {
         double responseTime = arma::accu(state.TaskResponseTime());
         std::cout << "responseTime=" << responseTime << std::endl;
         double execTime = arma::accu(state.TaskExecTime());
-        std::cout << "execTime=" << execTime << std::endl;
+        // std::cout << "execTime=" << execTime << std::endl;
         double cpuTime = arma::accu(state.TaskCPUtime());
-        std::cout << "cpuTime=" << cpuTime << std::endl;
+        // std::cout << "cpuTime=" << cpuTime << std::endl;
         double memoryUsage = arma::accu(state.TaskMemory());
-        std::cout << "memoryUsage=" << memoryUsage << std::endl;
+        // std::cout << "memoryUsage=" << memoryUsage << std::endl;
         double preemptions = arma::accu(state.PreemptCountPerCore());
-        std::cout << "preemptions=" << preemptions << std::endl;
+        // std::cout << "preemptions=" << preemptions << std::endl;
         double queueLength = arma::accu(state.CPU_queue_length());
-        std::cout << "queueLength=" << queueLength << std::endl;
+        // std::cout << "queueLength=" << queueLength << std::endl;
 
         double userTime = arma::accu(state.CPU_user_time());
-        std::cout << "userTime=" << userTime << std::endl;
+        // std::cout << "userTime=" << userTime << std::endl;
         double niceTime = arma::accu(state.CPU_nice_time());
-        std::cout << "niceTime=" << niceTime << std::endl;
+        // std::cout << "niceTime=" << niceTime << std::endl;
         double systemTime = arma::accu(state.CPU_system_time());
-        std::cout << "systemTime=" << systemTime << std::endl;
+        // std::cout << "systemTime=" << systemTime << std::endl;
         double idleTime = arma::accu(state.CPU_idle_time());
-        std::cout << "idleTime=" << idleTime << std::endl;
+        // std::cout << "idleTime=" << idleTime << std::endl;
         double iowaitTime = arma::accu(state.CPU_iowait_time());
-        std::cout << "iowaitTime=" << iowaitTime << std::endl;
+        // std::cout << "iowaitTime=" << iowaitTime << std::endl;
         double irqTime = arma::accu(state.CPU_irq_time());
-        std::cout << "irqTime=" << irqTime << std::endl;
+        // std::cout << "irqTime=" << irqTime << std::endl;
         double softirqTime = arma::accu(state.CPU_softirq_time());
-        std::cout << "softirqTime=" << softirqTime << std::endl;
+        // std::cout << "softirqTime=" << softirqTime << std::endl;
         double stealTime = arma::accu(state.CPU_steal_time());
-        std::cout << "stealTime=" << stealTime << std::endl;
+        // std::cout << "stealTime=" << stealTime << std::endl;
 
         double busyTime =
             userTime + niceTime + systemTime + irqTime + softirqTime;
@@ -485,6 +487,7 @@ class Serverless {
         std::cout << "dest_core=" << dest_core << std::endl;
 
         arma::mat latestdata = GetLatestEnvironmentMetrics(sharedData);
+        // std::cout << "latestdata=" << latestdata << std::endl;
         nextState = State(latestdata);
 
         double state_score = GetScore(state);
@@ -514,9 +517,7 @@ class Serverless {
      * @return reward,
      */
     double Sample(const State& state, const Action& action) {
-        std::cout << "calling Sample(State, Action)" << std::endl;
         State nextState;
-        std::cout << "finished calling Sample(State, Action)" << std::endl;
         return Sample(state, action, nextState);
     }
 
@@ -526,8 +527,11 @@ class Serverless {
      * @return the dummy state.
      */
     State InitialSample() {
+        std::cout << "InitialSample()" << std::endl;
         stepsPerformed = 0;
-        return State(serverlessData);
+        arma::mat currentdata = GetLatestEnvironmentMetrics(sharedData);
+        // std::cout << "currentdata=" << currentdata << std::endl;
+        return State(currentdata);
     }
 
     /**

@@ -22,6 +22,7 @@
 #define MLPACK_HPP
 
 #include <armadillo>
+#include "absl/synchronization/mutex.h"
 
 #include <mutex>
 
@@ -65,6 +66,7 @@ public:
 };
 
 extern SharedData sharedData;
+extern absl::Mutex sharedDataMutex_;
 
 // Include all of the core library components.
 #include "mlpack/base.hpp"
