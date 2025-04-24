@@ -15,5 +15,6 @@
 #include "simple_dqn.hpp"
 #include "categorical_dqn.hpp"
 #include "dueling_dqn.hpp"
+#include "tabular_q.hpp"
 
 #endif

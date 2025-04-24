@@ -53,11 +53,11 @@ class Serverless {
 
         // The historical response time (sum or average) of tasks completed on
         // this core.
-        double TaskRespondTime(size_t core) const {
+        double TaskResponseTime(size_t core) const {
             size_t idx = FlattenIndex(0, core);
             return data(idx);
         }
-        double& TaskRespondTime(size_t core) {
+        double& TaskResponseTime(size_t core) {
             size_t idx = FlattenIndex(0, core);
             return data(idx);
         }
@@ -196,10 +196,6 @@ class Serverless {
             size_t idx = FlattenIndex(13, core);
             return data(idx);
         }
-
-        // double GetMetricValue(size_t metricIndex, size_t coreIndex) const {
-        //     return data(metricIndex, coreIndex);
-        // }
 
         arma::rowvec TaskResponseTime() const {
             arma::mat tmp = arma::reshape(data, nMetrics, nCores);
@@ -408,10 +404,6 @@ class Serverless {
           serverlessCores(inputCores),
           stepsPerformed(0) {}
 
-    void UpdateData(const arma::mat& newData) {
-        serverlessData = newData;  // Safe and efficient assignment
-    }
-
     arma::mat GetLatestEnvironmentMetrics(const SharedData& sharedData) {
         sharedDataMutex_.Lock();
         arma::mat data = sharedData.getData();
@@ -421,7 +413,7 @@ class Serverless {
 
     double GetScore(const State& state) {
         double responseTime = arma::accu(state.TaskResponseTime());
-        std::cout << "responseTime=" << responseTime << std::endl;
+        // std::cout << "responseTime=" << responseTime << std::endl;
         double execTime = arma::accu(state.TaskExecTime());
         // std::cout << "execTime=" << execTime << std::endl;
         double cpuTime = arma::accu(state.TaskCPUtime());
@@ -431,7 +423,7 @@ class Serverless {
         double preemptions = arma::accu(state.PreemptCountPerCore());
         // std::cout << "preemptions=" << preemptions << std::endl;
         double queueLength = arma::accu(state.CPU_queue_length());
-        // std::cout << "queueLength=" << queueLength << std::endl;
+        // std::cout << "queueLength=" << state.CPU_queue_length() << std::endl;
 
         double userTime = arma::accu(state.CPU_user_time());
         // std::cout << "userTime=" << userTime << std::endl;
@@ -492,19 +484,22 @@ class Serverless {
 
         double state_score = GetScore(state);
         double next_state_score = GetScore(nextState);
-        std::cout << "state_score=" << state_score << std::endl;
-        std::cout << "next_state_score=" << next_state_score << std::endl;
+        // std::cout << "state_score=" << state_score << std::endl;
+        // std::cout << "next_state_score=" << next_state_score << std::endl;
 
         bool done = IsTerminal(nextState);
         if (done && maxSteps != 0 && stepsPerformed >= maxSteps) {
             return doneReward;
         }
 
-        if (next_state_score > state_score)
-            return 1.0;
-        else if (next_state_score < state_score)
-            return -1.0;
+        if (next_state_score > state_score) {
+            std::cout << "Reward for the action." << std::endl;
+            return 1.0;}
+        else if (next_state_score < state_score) {
+            std::cout << "Penalty for the action." << std::endl;
+            return -1.0;}
         else
+            std::cout << "No change in score." << std::endl;
             return 0.0;
     }
 
@@ -544,8 +539,6 @@ class Serverless {
         if (maxSteps != 0 && stepsPerformed >= maxSteps) {
             std::cout << "Episode terminated due to the maximum number of steps"
                       << "being taken." << std::endl;
-            return true;
-        } else if (state.CPU_queue_length(0) > 10) {
             return true;
         }
         return false;

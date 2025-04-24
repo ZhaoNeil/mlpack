@@ -296,7 +296,7 @@ double QLearning<EnvironmentType, NetworkType, UpdaterType, BehaviorPolicyType,
         else
             TrainAgent();
     }
-    std::cout << "totalReturn=" << totalReturn << std::endl;
+    // std::cout << "totalReturn=" << totalReturn << std::endl;
     return totalReturn;
 }
 
