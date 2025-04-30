@@ -36,6 +36,7 @@ QLearning<EnvironmentType, NetworkType, UpdaterType, PolicyType,
       deterministic(false) {
     // To copy over the network structure.
     targetNetwork = learningNetwork;
+    std::cout << "In QLearning constructor, config.NoisyQLearning()" << config.NoisyQLearning() << std::endl;
 
     // Set up q-learning network.
     if (learningNetwork.Parameters().n_elem !=
@@ -259,6 +260,8 @@ void QLearning<EnvironmentType, NetworkType, UpdaterType, BehaviorPolicyType,
     learningNetwork.Predict(state.Encode(), actionValue);
 
     // Select an action according to the behavior policy.
+    std::cout << "in SelectAction config.NoisyQLearning(): " << config.NoisyQLearning()
+              << std::endl;
     action = policy.Sample(actionValue, deterministic, config.NoisyQLearning());
 }
 
@@ -274,6 +277,7 @@ double QLearning<EnvironmentType, NetworkType, UpdaterType, BehaviorPolicyType,
 
     // Running until get to the terminal state.
     while (!environment.IsTerminal(state)) {
+        std::cout << "In Episode: " << config.NoisyQLearning() << std::endl;
         SelectAction();
 
         // Interact with the environment to advance to next state.
@@ -296,7 +300,6 @@ double QLearning<EnvironmentType, NetworkType, UpdaterType, BehaviorPolicyType,
         else
             TrainAgent();
     }
-    // std::cout << "totalReturn=" << totalReturn << std::endl;
     return totalReturn;
 }
 

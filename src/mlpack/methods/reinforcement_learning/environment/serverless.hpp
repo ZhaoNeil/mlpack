@@ -376,16 +376,27 @@ class Serverless {
     };
 
     class Action {
-       public:
-        enum actions {
-            allocate_core,
-        };
-        // To store the action.
-        Action::actions action;
-
-        // Track the size of the action space.
-        static constexpr size_t size = 1;
+        public:
+            size_t action;
+        
+            Action() : action(0) {}
+            Action(size_t id) : action(id) {}
+        
+            static constexpr size_t size = 60;
     };
+        
+        
+    // class Action {
+    //     public:
+    //      enum actions {
+    //          allocate_core,
+    //      };
+    //      // To store the action.
+    //      Action::actions action;
+ 
+    //      // Track the size of the action space.
+    //      static constexpr size_t size = 1;
+    //  };
 
     /**
      * Construct a Serverless instance using the given constants.
