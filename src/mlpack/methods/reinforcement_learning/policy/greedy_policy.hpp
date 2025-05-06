@@ -65,13 +65,10 @@ class GreedyPolicy
                     bool deterministic = false,
                     const bool isNoisy = false)
   {
-    // double exploration = Random();
-    double exploration = 0.5;
+    double exploration = Random();
     ActionType action;
     std::cout << "Available actions: " << actionValue.t() << std::endl;
-    std::cout << "deterministic: " << deterministic << std::endl;
     std::cout << "exploration: " << exploration << ", epsilon: " << epsilon << std::endl;
-    std::cout << "isNoisy: " << isNoisy << std::endl;
 
     // Select the action randomly.
     if (!deterministic && exploration < epsilon && isNoisy == false)
