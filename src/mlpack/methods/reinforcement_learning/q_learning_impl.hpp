@@ -275,7 +275,6 @@ double QLearning<EnvironmentType, NetworkType, UpdaterType, BehaviorPolicyType,
 
     // Running until get to the terminal state.
     while (!environment.IsTerminal(state)) {
-        std::cout << "In Episode: " << config.NoisyQLearning() << std::endl;
         SelectAction();
 
         // Interact with the environment to advance to next state.

@@ -433,7 +433,7 @@ class Serverless {
         // std::cout << "memoryUsage=" << memoryUsage << std::endl;
         double preemptions = arma::accu(state.PreemptCountPerCore());
         // std::cout << "preemptions=" << preemptions << std::endl;
-        double queueLength = arma::accu(state.CPU_queue_length());
+        // double queueLength = arma::accu(state.CPU_queue_length());
         // std::cout << "queueLength=" << state.CPU_queue_length() << std::endl;
 
         double userTime = arma::accu(state.CPU_user_time());
@@ -466,9 +466,10 @@ class Serverless {
         double w6 = 0.1;   // Queue length
         double w7 = 0.1;   // CPU utilization
 
-        double score = -(w1 * responseTime + w2 * execTime);
-        score -= (w3 * cpuTime + w4 * memoryUsage + w5 * preemptions +
-                  w6 * queueLength + w7 * utilization);
+        // double score = -(w1 * responseTime + w2 * execTime);
+        // score -= (w3 * cpuTime + w4 * memoryUsage + w5 * preemptions +
+        //           w6 * queueLength + w7 * utilization);
+        double score = arma::stddev(state.CPU_queue_length());
 
         return score;
     }
@@ -503,10 +504,10 @@ class Serverless {
             return doneReward;
         }
 
-        if (next_state_score > state_score) {
+        if (next_state_score < state_score) {
             std::cout << "Reward for the action." << std::endl;
             return 1.0;}
-        else if (next_state_score < state_score) {
+        else if (next_state_score > state_score) {
             std::cout << "Penalty for the action." << std::endl;
             return -1.0;}
         else
