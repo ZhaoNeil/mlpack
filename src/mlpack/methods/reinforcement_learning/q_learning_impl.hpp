@@ -36,7 +36,6 @@ QLearning<EnvironmentType, NetworkType, UpdaterType, PolicyType,
       deterministic(false) {
     // To copy over the network structure.
     targetNetwork = learningNetwork;
-    std::cout << "In QLearning constructor, config.NoisyQLearning()" << config.NoisyQLearning() << std::endl;
 
     // Set up q-learning network.
     if (learningNetwork.Parameters().n_elem !=
@@ -257,6 +256,8 @@ void QLearning<EnvironmentType, NetworkType, UpdaterType, BehaviorPolicyType,
                ReplayType>::SelectAction() {
     // Get the action value for each action at current state.
     arma::colvec actionValue;
+    // std::cout << "Encoded state: " << state.Encode().t();
+    // std::cout << "Max weight: " << arma::max(arma::abs(learningNetwork.Parameters())) << std::endl;
     learningNetwork.Predict(state.Encode(), actionValue);
 
     // Select an action according to the behavior policy.

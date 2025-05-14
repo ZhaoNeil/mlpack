@@ -42,7 +42,7 @@ class Serverless {
             // std::cout << "CPU_irq_time=" << data.row(10) << std::endl;
             // std::cout << "CPU_softirq_time=" << data.row(11) << std::endl;
             // std::cout << "CPU_steal_time=" << data.row(12) << std::endl;
-            // std::cout << "CPU_queue_length=" << data.row(13) << std::endl;
+            std::cout << "CPU_queue_length=" << data.row(13) << std::endl;
         }
 
         inline size_t FlattenIndex(size_t row, size_t col) const {
@@ -406,11 +406,9 @@ class Serverless {
      *
      */
     Serverless(const size_t maxSteps, const double doneReward,
-               const arma::mat& inputData, size_t inputMetrics,
-               size_t inputCores)
+               size_t inputMetrics, size_t inputCores)
         : maxSteps(maxSteps),
           doneReward(doneReward),
-          serverlessData(inputData),
           serverlessMetrics(inputMetrics),
           serverlessCores(inputCores),
           stepsPerformed(0) {}
@@ -573,9 +571,6 @@ class Serverless {
 
     // Locally-stored number of steps performed.
     size_t stepsPerformed;
-
-    // Locally-stored data.
-    arma::mat serverlessData;
 
     // Dimension of the metrics
     size_t serverlessMetrics;
