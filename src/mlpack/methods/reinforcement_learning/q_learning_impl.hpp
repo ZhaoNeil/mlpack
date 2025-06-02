@@ -261,6 +261,7 @@ void QLearning<EnvironmentType, NetworkType, UpdaterType, BehaviorPolicyType,
     learningNetwork.Predict(state.Encode(), actionValue);
 
     // Select an action according to the behavior policy.
+    // std::cout << "Available actions: " << actionValue.t() << std::endl;
     action = policy.Sample(actionValue, deterministic, config.NoisyQLearning());
 }
 

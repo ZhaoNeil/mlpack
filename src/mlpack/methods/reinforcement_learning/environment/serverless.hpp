@@ -42,7 +42,7 @@ class Serverless {
             // std::cout << "CPU_irq_time=" << data.row(10) << std::endl;
             // std::cout << "CPU_softirq_time=" << data.row(11) << std::endl;
             // std::cout << "CPU_steal_time=" << data.row(12) << std::endl;
-            std::cout << "CPU_queue_length=" << data.row(13) << std::endl;
+            // std::cout << "CPU_queue_length=" << data.row(13) << std::endl;
         }
 
         inline size_t FlattenIndex(size_t row, size_t col) const {
@@ -360,8 +360,20 @@ class Serverless {
                 throw std::runtime_error(
                     "Encode() error: State data is empty!");
             }
-            arma::colvec flattenedState = arma::vectorise(data);
-            return flattenedState;
+            arma::mat normalized = data;
+
+            for (size_t i = 0; i < nMetrics; ++i) {
+                arma::rowvec row = data.row(i);
+                double minVal = row.min();
+                double maxVal = row.max();
+
+                if (maxVal > minVal) {
+                    normalized.row(i) = (row - minVal) / (maxVal - minVal);
+                } else {
+                    normalized.row(i).zeros();
+                }
+            }
+            return arma::vectorise(normalized);
         }
 
         static constexpr size_t dimension = 14 * 60;
@@ -431,7 +443,7 @@ class Serverless {
         // std::cout << "memoryUsage=" << memoryUsage << std::endl;
         double preemptions = arma::accu(state.PreemptCountPerCore());
         // std::cout << "preemptions=" << preemptions << std::endl;
-        // double queueLength = arma::accu(state.CPU_queue_length());
+        double queueLength = arma::accu(state.CPU_queue_length());
         // std::cout << "queueLength=" << state.CPU_queue_length() << std::endl;
 
         double userTime = arma::accu(state.CPU_user_time());
@@ -464,10 +476,10 @@ class Serverless {
         double w6 = 0.1;   // Queue length
         double w7 = 0.1;   // CPU utilization
 
-        // double score = -(w1 * responseTime + w2 * execTime);
-        // score -= (w3 * cpuTime + w4 * memoryUsage + w5 * preemptions +
-        //           w6 * queueLength + w7 * utilization);
-        double score = arma::stddev(state.CPU_queue_length());
+        double score = -(w1 * responseTime + w2 * execTime);
+        score -= (w3 * cpuTime + w4 * memoryUsage +
+                  w6 * queueLength - w7 * utilization);
+        // double score = -arma::stddev(state.CPU_queue_length());
 
         return score;
     }
@@ -502,10 +514,10 @@ class Serverless {
             return doneReward;
         }
 
-        if (next_state_score < state_score) {
+        if (next_state_score > state_score) {
             std::cout << "Reward for the action." << std::endl;
             return 1.0;}
-        else if (next_state_score > state_score) {
+        else if (next_state_score < state_score) {
             std::cout << "Penalty for the action." << std::endl;
             return -1.0;}
         else

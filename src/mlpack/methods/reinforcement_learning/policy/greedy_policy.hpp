@@ -67,7 +67,6 @@ class GreedyPolicy
   {
     double exploration = Random();
     ActionType action;
-    std::cout << "Available actions: " << actionValue.t() << std::endl;
     std::cout << "exploration: " << exploration << ", epsilon: " << epsilon << std::endl;
 
     // Select the action randomly.
