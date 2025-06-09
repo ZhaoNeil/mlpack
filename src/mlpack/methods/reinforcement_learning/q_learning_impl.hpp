@@ -272,25 +272,34 @@ double QLearning<EnvironmentType, NetworkType, UpdaterType, BehaviorPolicyType,
     // Get the initial state from environment.
     state = environment.InitialSample();
 
-    // Track the return of this episode.
     double totalReturn = 0.0;
+    std::vector<ActionType> episodeActions;
+
+    // Open the state log file only once for the entire episode.
+    std::ofstream statefile("/home/yuxuan/mlpack/src/mlpack/methods/reinforcement_learning/log/state_space.txt",
+                            std::ios::app);
 
     // Running until get to the terminal state.
     while (!environment.IsTerminal(state)) {
         SelectAction();
 
-        // Interact with the environment to advance to next state.
+        // Log the action
+        episodeActions.push_back(action);
+
+        // Log the state
+        statefile << state.Encode().t() << std::endl;
+
+        // Environment interaction
         StateType nextState;
         double reward = environment.Sample(state, action, nextState);
 
         totalReturn += reward;
         totalSteps++;
 
-        // Store the transition for replay.
         replayMethod.Store(state, action, reward, nextState,
                            environment.IsTerminal(nextState),
                            config.Discount());
-        // Update current state.
+
         state = nextState;
 
         if (deterministic || totalSteps < config.ExplorationSteps()) continue;
@@ -299,8 +308,22 @@ double QLearning<EnvironmentType, NetworkType, UpdaterType, BehaviorPolicyType,
         else
             TrainAgent();
     }
+
+    statefile.close(); // Only close once at the end of the episode
+
+    // Log all actions once at the end
+    std::ofstream actionfile("/home/yuxuan/mlpack/src/mlpack/methods/reinforcement_learning/log/action_dist.txt",
+                             std::ios::app);
+
+    for (const auto& a : episodeActions) {
+        actionfile << static_cast<int>(a.action) << " ";
+    }
+    actionfile << std::endl;
+    actionfile.close();
+
     return totalReturn;
 }
+
 
 }  // namespace mlpack
 
