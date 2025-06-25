@@ -307,6 +307,8 @@ double QLearning<EnvironmentType, NetworkType, UpdaterType, BehaviorPolicyType,
             TrainCategoricalAgent();
         else
             TrainAgent();
+        // sleep 0.01 seconds to slow down the training process
+        // std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 
     statefile.close(); // Only close once at the end of the episode

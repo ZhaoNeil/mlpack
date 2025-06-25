@@ -11,3 +11,4 @@ Testing/
 *.swp
 *.swo
 *~
+src/mlpack/methods/reinforcement_learning/log
