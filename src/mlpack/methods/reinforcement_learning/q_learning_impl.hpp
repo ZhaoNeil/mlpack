@@ -308,7 +308,7 @@ double QLearning<EnvironmentType, NetworkType, UpdaterType, BehaviorPolicyType,
         else
             TrainAgent();
         // sleep 0.01 seconds to slow down the training process
-        // std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
 
     statefile.close(); // Only close once at the end of the episode
@@ -324,6 +324,74 @@ double QLearning<EnvironmentType, NetworkType, UpdaterType, BehaviorPolicyType,
     actionfile.close();
 
     return totalReturn;
+}
+
+
+template <typename EnvironmentType, typename NetworkType, typename UpdaterType,
+          typename BehaviorPolicyType, typename ReplayType>
+typename EnvironmentType::Action QLearning<EnvironmentType, NetworkType, UpdaterType, BehaviorPolicyType, ReplayType>::GetAction()
+{
+    if (!episodeStarted || environment.IsTerminal(state))
+    {
+        state = environment.InitialSample();
+        episodeStarted = true;
+        episodeFinished = false;
+        episodeReturn = 0.0;
+        episodeActions.clear();
+        totalSteps = 0;
+
+        if (statefile.is_open()) statefile.close();
+        statefile.open("/home/yuxuan/mlpack/src/mlpack/methods/reinforcement_learning/log/state_space.txt", std::ios::app);
+    }
+
+    if (environment.IsTerminal(state)) {
+        episodeFinished = true;
+
+        if (statefile.is_open()) statefile.close();
+
+        // Log actions
+        std::ofstream actionfile("/home/yuxuan/mlpack/src/mlpack/methods/reinforcement_learning/log/action_dist.txt", std::ios::app);
+        for (const auto& a : episodeActions)
+            actionfile << static_cast<int>(a.action) << " ";
+        actionfile << std::endl;
+        actionfile.close();
+
+        return typename EnvironmentType::Action(); // default action
+    }
+
+    // Step
+    SelectAction();
+    episodeActions.push_back(action);
+    statefile << state.Encode().t() << std::endl;
+
+    typename EnvironmentType::State nextState;
+    double reward = environment.Sample(state, action, nextState);
+
+    episodeReturn += reward;
+    totalSteps++;
+
+    replayMethod.Store(state, action, reward, nextState,
+                       environment.IsTerminal(nextState),
+                       config.Discount());
+
+    state = nextState;
+
+    if (!deterministic && totalSteps >= config.ExplorationSteps())
+    {
+        if (config.IsCategorical())
+            TrainCategoricalAgent();
+        else
+            TrainAgent();
+    }
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+
+    if (environment.IsTerminal(state))
+    {
+        episodeFinished = true;
+    }
+
+    return action;
 }
 
 

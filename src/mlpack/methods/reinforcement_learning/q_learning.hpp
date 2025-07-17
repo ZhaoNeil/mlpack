@@ -137,6 +137,10 @@ class QLearning
   //! Modify the learning network.
   NetworkType& Network() { return learningNetwork; }
 
+  double IsEpisodeDone() const { return episodeFinished;}
+  double GetEpisodeReturn() const { return episodeReturn; }
+  ActionType GetAction();
+
  private:
   /**
    * Select the best action based on given action value.
@@ -180,6 +184,12 @@ class QLearning
 
   //! Locally-stored flag indicating training mode or test mode.
   bool deterministic;
+
+  bool episodeStarted = false;
+  bool episodeFinished = false;
+  double episodeReturn = 0.0;
+  std::vector<ActionType> episodeActions;
+  std::ofstream statefile;
 };
 
 } // namespace mlpack

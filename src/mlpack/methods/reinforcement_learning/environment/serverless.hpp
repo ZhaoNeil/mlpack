@@ -389,16 +389,15 @@ class Serverless {
     };
 
     class Action {
-        public:
-            size_t action;
-        
-            Action() : action(0) {}
-            Action(size_t id) : action(id) {}
-        
-            static constexpr size_t size = 20;
+       public:
+        size_t action;
+
+        Action() : action(0) {}
+        Action(size_t id) : action(id) {}
+
+        static constexpr size_t size = 20;
     };
-        
-        
+
     // class Action {
     //     public:
     //      enum actions {
@@ -406,7 +405,6 @@ class Serverless {
     //      };
     //      // To store the action.
     //      Action::actions action;
- 
     //      // Track the size of the action space.
     //      static constexpr size_t size = 1;
     //  };
@@ -483,7 +481,7 @@ class Serverless {
         // double score = -arma::stddev(state.CPU_queue_length());
         // double score = -(w1 * responseTime + w2 * execTime +
         //                  w6 * arma::stddev(state.CPU_queue_length()));
-        double score = - responseTime;
+        double score = -responseTime;
 
         return score;
     }
@@ -520,13 +518,13 @@ class Serverless {
 
         if (next_state_score > state_score) {
             std::cout << "Reward for the action." << std::endl;
-            return 1.0;}
-        else if (next_state_score < state_score) {
+            return 1.0;
+        } else if (next_state_score < state_score) {
             std::cout << "Penalty for the action." << std::endl;
-            return -1.0;}
-        else
+            return -1.0;
+        } else
             std::cout << "No change in score." << std::endl;
-            return 0.0;
+        return 0.0;
     }
 
     /**
@@ -552,7 +550,8 @@ class Serverless {
         stepsPerformed = 0;
         // arma::mat currentdata = GetLatestEnvironmentMetrics(sharedData);
         // std::cout << "currentdata=" << currentdata << std::endl;
-        arma::mat initialdata = arma::zeros<arma::mat>(State::nMetrics, State::nCores);
+        arma::mat initialdata =
+            arma::zeros<arma::mat>(State::nMetrics, State::nCores);
 
         return State(initialdata);
     }
@@ -568,7 +567,8 @@ class Serverless {
             std::cout << "Episode terminated due to the maximum number of steps"
                       << "being taken." << std::endl;
             return true;
-        } else if (stepsPerformed > 0 && arma::all(state.CPU_queue_length() == 0)) {
+        } else if (stepsPerformed > maxSteps - 1 &&
+                   arma::all(state.CPU_queue_length() == 0)) {
             std::cout << "All tasks completed." << std::endl;
             return true;
         }
