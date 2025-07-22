@@ -132,13 +132,15 @@ class QLearning
   //! Get the indicator of training mode / test mode.
   const bool& Deterministic() const { return deterministic; }
 
-  //! Return the learning network.
+  //! Return the learning network.§
   const NetworkType& Network() const { return learningNetwork; }
   //! Modify the learning network.
   NetworkType& Network() { return learningNetwork; }
 
   double IsEpisodeDone() const { return episodeFinished;}
   double GetEpisodeReturn() const { return episodeReturn; }
+  std::vector<double> GetEpisodeReturnList() const { return episodeReturnList; }
+  std::vector<double> GetTestEpisodeReturn() const { return testEpisodeReturn; }
   ActionType GetAction();
 
  private:
@@ -190,6 +192,8 @@ class QLearning
   double episodeReturn = 0.0;
   std::vector<ActionType> episodeActions;
   std::ofstream statefile;
+  std::vector<double> episodeReturnList;
+  std::vector<double> testEpisodeReturn;
 };
 
 } // namespace mlpack

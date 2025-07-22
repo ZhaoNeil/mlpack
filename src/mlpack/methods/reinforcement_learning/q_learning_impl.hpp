@@ -333,6 +333,11 @@ typename EnvironmentType::Action QLearning<EnvironmentType, NetworkType, Updater
 {
     if (!episodeStarted || environment.IsTerminal(state))
     {
+        if (!deterministic){
+            episodeReturnList.push_back(episodeReturn);
+        } else {
+            testEpisodeReturn.push_back(episodeReturn);
+        }
         state = environment.InitialSample();
         episodeStarted = true;
         episodeFinished = false;
@@ -340,23 +345,8 @@ typename EnvironmentType::Action QLearning<EnvironmentType, NetworkType, Updater
         episodeActions.clear();
         totalSteps = 0;
 
-        if (statefile.is_open()) statefile.close();
-        statefile.open("/home/yuxuan/mlpack/src/mlpack/methods/reinforcement_learning/log/state_space.txt", std::ios::app);
-    }
-
-    if (environment.IsTerminal(state)) {
-        episodeFinished = true;
-
-        if (statefile.is_open()) statefile.close();
-
-        // Log actions
-        std::ofstream actionfile("/home/yuxuan/mlpack/src/mlpack/methods/reinforcement_learning/log/action_dist.txt", std::ios::app);
-        for (const auto& a : episodeActions)
-            actionfile << static_cast<int>(a.action) << " ";
-        actionfile << std::endl;
-        actionfile.close();
-
-        return typename EnvironmentType::Action(); // default action
+        // if (statefile.is_open()) statefile.close();
+        // statefile.open("/home/yuxuan/mlpack/src/mlpack/methods/reinforcement_learning/log/state_space.txt", std::ios::app);
     }
 
     // Step
@@ -368,6 +358,7 @@ typename EnvironmentType::Action QLearning<EnvironmentType, NetworkType, Updater
     double reward = environment.Sample(state, action, nextState);
 
     episodeReturn += reward;
+    // std::cout << "Episode return: " << episodeReturn << std::endl;
     totalSteps++;
 
     replayMethod.Store(state, action, reward, nextState,
@@ -384,7 +375,7 @@ typename EnvironmentType::Action QLearning<EnvironmentType, NetworkType, Updater
             TrainAgent();
     }
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    // std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
     if (environment.IsTerminal(state))
     {
