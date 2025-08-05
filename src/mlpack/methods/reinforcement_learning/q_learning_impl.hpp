@@ -257,7 +257,8 @@ void QLearning<EnvironmentType, NetworkType, UpdaterType, BehaviorPolicyType,
     // Get the action value for each action at current state.
     arma::colvec actionValue;
     // std::cout << "Encoded state: " << state.Encode().t();
-    // std::cout << "Max weight: " << arma::max(arma::abs(learningNetwork.Parameters())) << std::endl;
+    // std::cout << "Max weight: " <<
+    // arma::max(arma::abs(learningNetwork.Parameters())) << std::endl;
     learningNetwork.Predict(state.Encode(), actionValue);
 
     // Select an action according to the behavior policy.
@@ -276,8 +277,10 @@ double QLearning<EnvironmentType, NetworkType, UpdaterType, BehaviorPolicyType,
     std::vector<ActionType> episodeActions;
 
     // Open the state log file only once for the entire episode.
-    std::ofstream statefile("/home/yuxuan/mlpack/src/mlpack/methods/reinforcement_learning/log/state_space.txt",
-                            std::ios::app);
+    std::ofstream statefile(
+        "/home/yuxuan/mlpack/src/mlpack/methods/reinforcement_learning/log/"
+        "state_space.txt",
+        std::ios::app);
 
     // Running until get to the terminal state.
     while (!environment.IsTerminal(state)) {
@@ -311,11 +314,13 @@ double QLearning<EnvironmentType, NetworkType, UpdaterType, BehaviorPolicyType,
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
 
-    statefile.close(); // Only close once at the end of the episode
+    statefile.close();  // Only close once at the end of the episode
 
     // Log all actions once at the end
-    std::ofstream actionfile("/home/yuxuan/mlpack/src/mlpack/methods/reinforcement_learning/log/action_dist.txt",
-                             std::ios::app);
+    std::ofstream actionfile(
+        "/home/yuxuan/mlpack/src/mlpack/methods/reinforcement_learning/log/"
+        "action_dist.txt",
+        std::ios::app);
 
     for (const auto& a : episodeActions) {
         actionfile << static_cast<int>(a.action) << " ";
@@ -326,65 +331,49 @@ double QLearning<EnvironmentType, NetworkType, UpdaterType, BehaviorPolicyType,
     return totalReturn;
 }
 
-
 template <typename EnvironmentType, typename NetworkType, typename UpdaterType,
           typename BehaviorPolicyType, typename ReplayType>
-typename EnvironmentType::Action QLearning<EnvironmentType, NetworkType, UpdaterType, BehaviorPolicyType, ReplayType>::GetAction()
-{
-    if (!episodeStarted || environment.IsTerminal(state))
-    {
-        if (!deterministic){
-            episodeReturnList.push_back(episodeReturn);
-        } else {
-            testEpisodeReturn.push_back(episodeReturn);
-        }
+typename EnvironmentType::Action
+QLearning<EnvironmentType, NetworkType, UpdaterType, BehaviorPolicyType,
+          ReplayType>::GetAction() {
+    if (environment.IsTerminal(state)) {
         state = environment.InitialSample();
         episodeStarted = true;
         episodeFinished = false;
         episodeReturn = 0.0;
         episodeActions.clear();
-        totalSteps = 0;
-
-        // if (statefile.is_open()) statefile.close();
-        // statefile.open("/home/yuxuan/mlpack/src/mlpack/methods/reinforcement_learning/log/state_space.txt", std::ios::app);
     }
 
-    // Step
     SelectAction();
     episodeActions.push_back(action);
-    statefile << state.Encode().t() << std::endl;
 
     typename EnvironmentType::State nextState;
     double reward = environment.Sample(state, action, nextState);
 
     episodeReturn += reward;
-    // std::cout << "Episode return: " << episodeReturn << std::endl;
     totalSteps++;
 
-    replayMethod.Store(state, action, reward, nextState,
-                       environment.IsTerminal(nextState),
-                       config.Discount());
+    if (!deterministic) {
+        replayMethod.Store(state, action, reward, nextState,
+                           environment.IsTerminal(nextState),
+                           config.Discount());
+    }
 
     state = nextState;
 
-    if (!deterministic && totalSteps >= config.ExplorationSteps())
-    {
+    if (!deterministic && totalSteps >= config.ExplorationSteps()) {
         if (config.IsCategorical())
             TrainCategoricalAgent();
         else
             TrainAgent();
     }
 
-    // std::this_thread::sleep_for(std::chrono::milliseconds(50));
-
-    if (environment.IsTerminal(state))
-    {
+    if (environment.IsTerminal(state)) {
         episodeFinished = true;
     }
 
     return action;
 }
-
 
 }  // namespace mlpack
 

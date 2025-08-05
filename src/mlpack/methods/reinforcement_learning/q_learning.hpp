@@ -139,8 +139,6 @@ class QLearning
 
   double IsEpisodeDone() const { return episodeFinished;}
   double GetEpisodeReturn() const { return episodeReturn; }
-  std::vector<double> GetEpisodeReturnList() const { return episodeReturnList; }
-  std::vector<double> GetTestEpisodeReturn() const { return testEpisodeReturn; }
   ActionType GetAction();
 
  private:
