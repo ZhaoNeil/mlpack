@@ -401,12 +401,14 @@ class Serverless {
     // class Action {
     //     public:
     //      enum actions {
-    //          allocate_core,
+    //          dst_core,
+    //          preemption_time_slice,
+    //          num_shuffle_tasks,
     //      };
     //      // To store the action.
     //      Action::actions action;
     //      // Track the size of the action space.
-    //      static constexpr size_t size = 1;
+    //      static constexpr size_t size = 3;
     //  };
 
     /**
@@ -495,41 +497,68 @@ class Serverless {
      * @param nextState The next state.
      * @return reward,
      */
+    // double Sample(const State& state, const Action& action, State& nextState)
+    // {
+    //     stepsPerformed++;
+    //     std::cout << "stepsPerformed= " << stepsPerformed << std::endl;
+
+    //     size_t dest_core = action.action;
+    //     std::cout << "dest_core=" << dest_core << std::endl;
+
+    //     arma::mat latestdata = GetLatestEnvironmentMetrics(sharedData);
+    //     nextState = State(latestdata);
+
+    //     double state_score = GetScore(state);
+    //     double next_state_score = GetScore(nextState);
+    //     // std::cout << "state_score=" << state_score << std::endl;
+    //     // std::cout << "next_state_score=" << next_state_score << std::endl;
+
+    //     bool done = IsTerminal(nextState);
+    //     if (done && maxSteps != 0 && stepsPerformed >= maxSteps) {
+    //         return doneReward;
+    //     }
+
+    //     if (next_state_score > state_score) {
+    //         std::cout << "Reward for the action." << std::endl;
+    //         return 1.0;
+    //     } else if (next_state_score < state_score) {
+    //         std::cout << "Penalty for the action." << std::endl;
+    //         return -1.0;
+    //     } else
+    //         std::cout << "No change in score." << std::endl;
+    //     return 0.0;
+    // }
     double Sample(const State& state, const Action& action, State& nextState) {
         stepsPerformed++;
         std::cout << "stepsPerformed= " << stepsPerformed << std::endl;
 
         size_t dest_core = action.action;
         std::cout << "dest_core=" << dest_core << std::endl;
-
         arma::mat latestdata = GetLatestEnvironmentMetrics(sharedData);
-        // std::cout << "latestdata=" << latestdata << std::endl;
         nextState = State(latestdata);
-
-        double state_score = GetScore(state);
-        double next_state_score = GetScore(nextState);
-        // std::cout << "state_score=" << state_score << std::endl;
-        // std::cout << "next_state_score=" << next_state_score << std::endl;
-
+        const size_t k = std::min<size_t>(10, state.CPU_queue_length().n_elem);
+        arma::uvec order = arma::sort_index(state.CPU_queue_length(), "ascend");  
+        
+        // Take the first k indices (k shortest queues)
+        arma::uvec topk = order.head(k);  
+        
+        // Is the chosen core among the k shortest?
+        bool in_topk = arma::any(topk == dest_core);
+        
         bool done = IsTerminal(nextState);
         if (done && maxSteps != 0 && stepsPerformed >= maxSteps) {
             return doneReward;
         }
-
-        if (next_state_score > state_score) {
-            std::cout << "Reward for the action." << std::endl;
+        if (in_topk) {
             return 1.0;
-        } else if (next_state_score < state_score) {
-            std::cout << "Penalty for the action." << std::endl;
+        } else {
             return -1.0;
-        } else
-            std::cout << "No change in score." << std::endl;
-        return 0.0;
+        }
     }
 
     /**
-     * Dynamics of Serverless instance. Get reward based on current state and
-     * action.
+     * Dynamics of Serverless instance. Get reward based on current state
+     * and action.
      *
      * @param state The current state.
      * @param action The current action.
@@ -557,7 +586,8 @@ class Serverless {
     }
 
     /**
-     * This function checks if the serverless has reached the terminal state.
+     * This function checks if the serverless has reached the terminal
+     * state.
      *
      * @param state The current state.
      * @return true if state is a terminal state, otherwise false.
