@@ -387,30 +387,7 @@ class Serverless {
         //! Locally-stored state data.
         arma::mat data;
     };
-
-    class Action {
-       public:
-        size_t action;
-
-        Action() : action(0) {}
-        Action(size_t id) : action(id) {}
-
-        static constexpr size_t size = 20;
-    };
-
-    // class Action {
-    //     public:
-    //      enum actions {
-    //          dst_core,
-    //          preemption_time_slice,
-    //          num_shuffle_tasks,
-    //      };
-    //      // To store the action.
-    //      Action::actions action;
-    //      // Track the size of the action space.
-    //      static constexpr size_t size = 3;
-    //  };
-
+    
     /**
      * Construct a Serverless instance using the given constants.
      *
@@ -488,6 +465,50 @@ class Serverless {
         return score;
     }
 
+    // class Action {
+    //    public:
+    //     size_t action;
+
+    //     Action() : action(0) {}
+    //     Action(size_t id) : action(id) {}
+
+    //     static constexpr size_t size = 20;
+    // };
+
+    class Action {
+       public:
+        static constexpr size_t kNumCores = State::nCores;  // 20
+        static constexpr size_t kNumTimeBins = 3;
+        static constexpr size_t kNumShuffleBins = 3;
+
+        static constexpr size_t size =
+            kNumCores * kNumTimeBins * kNumShuffleBins;
+
+        // Flattened action id in [0, size-1]
+        size_t action;
+
+        Action() : action(0) {}
+        explicit Action(size_t id) : action(id) {}
+
+        // Helpers to pack/unpack a tuple <core, timeBin, shuffleBin>.
+        static inline size_t Encode(size_t core, size_t timeBin,
+                                    size_t shuffleBin) {
+            return core + kNumCores * (timeBin + kNumTimeBins * shuffleBin);
+        }
+        static inline void Decode(size_t id, size_t& core, size_t& timeBin,
+                                  size_t& shuffleBin) {
+            core = id % kNumCores;
+            id /= kNumCores;
+            timeBin = id % kNumTimeBins;
+            id /= kNumTimeBins;
+            shuffleBin = id % kNumShuffleBins;  // in [0, kNumShuffleBins-1]
+        }
+        static inline constexpr uint16_t kTimeSliceMs[Action::kNumTimeBins] = {1000, 2000, 3000};
+        static inline constexpr size_t kShuffleCounts[Action::kNumShuffleBins] = {2, 4, 6};
+    };
+
+
+
     /**
      * Dynamics of the Serverless instance. Get reward and next state based on
      * current state and current action.
@@ -497,6 +518,42 @@ class Serverless {
      * @param nextState The next state.
      * @return reward,
      */
+    double Sample(const State& state, const Action& action, State& nextState) {
+        stepsPerformed++;
+        std::cout << "stepsPerformed= " << stepsPerformed << std::endl;
+
+        size_t coreBin, timeBin, shuffleBin; //indices after decoding
+        Action::Decode(action.action, coreBin, timeBin, shuffleBin);
+        size_t dest_core = coreBin;
+        double timeSlice = Action::kTimeSliceMs[timeBin];
+        size_t shuffleCount = Action::kShuffleCounts[shuffleBin];
+        std::cout << "dest_core=" << dest_core
+                  << ", timeSlice=" << timeSlice
+                  << ", shuffleCount=" << shuffleCount << std::endl;
+
+        arma::mat latestdata = GetLatestEnvironmentMetrics(sharedData);
+        nextState = State(latestdata);
+
+        double state_score = GetScore(state);
+        double next_state_score = GetScore(nextState);
+        // std::cout << "state_score=" << state_score << std::endl;
+        // std::cout << "next_state_score=" << next_state_score << std::endl;
+
+        bool done = IsTerminal(nextState);
+        if (done && maxSteps != 0 && stepsPerformed >= maxSteps) {
+            return doneReward;
+        }
+
+        if (next_state_score > state_score) {
+            std::cout << "Reward for the action." << std::endl;
+            return 1.0;
+        } else if (next_state_score < state_score) {
+            std::cout << "Penalty for the action." << std::endl;
+            return -1.0;
+        } else
+            std::cout << "No change in score." << std::endl;
+        return 0.0;
+    }
     // double Sample(const State& state, const Action& action, State& nextState)
     // {
     //     stepsPerformed++;
@@ -504,57 +561,28 @@ class Serverless {
 
     //     size_t dest_core = action.action;
     //     std::cout << "dest_core=" << dest_core << std::endl;
-
     //     arma::mat latestdata = GetLatestEnvironmentMetrics(sharedData);
     //     nextState = State(latestdata);
+    //     const size_t k = std::min<size_t>(10,
+    //     state.CPU_queue_length().n_elem); arma::uvec order =
+    //     arma::sort_index(state.CPU_queue_length(), "ascend");
 
-    //     double state_score = GetScore(state);
-    //     double next_state_score = GetScore(nextState);
-    //     // std::cout << "state_score=" << state_score << std::endl;
-    //     // std::cout << "next_state_score=" << next_state_score << std::endl;
+    //     // Take the first k indices (k shortest queues)
+    //     arma::uvec topk = order.head(k);
+
+    //     // Is the chosen core among the k shortest?
+    //     bool in_topk = arma::any(topk == dest_core);
 
     //     bool done = IsTerminal(nextState);
     //     if (done && maxSteps != 0 && stepsPerformed >= maxSteps) {
     //         return doneReward;
     //     }
-
-    //     if (next_state_score > state_score) {
-    //         std::cout << "Reward for the action." << std::endl;
+    //     if (in_topk) {
     //         return 1.0;
-    //     } else if (next_state_score < state_score) {
-    //         std::cout << "Penalty for the action." << std::endl;
+    //     } else {
     //         return -1.0;
-    //     } else
-    //         std::cout << "No change in score." << std::endl;
-    //     return 0.0;
+    //     }
     // }
-    double Sample(const State& state, const Action& action, State& nextState) {
-        stepsPerformed++;
-        std::cout << "stepsPerformed= " << stepsPerformed << std::endl;
-
-        size_t dest_core = action.action;
-        std::cout << "dest_core=" << dest_core << std::endl;
-        arma::mat latestdata = GetLatestEnvironmentMetrics(sharedData);
-        nextState = State(latestdata);
-        const size_t k = std::min<size_t>(10, state.CPU_queue_length().n_elem);
-        arma::uvec order = arma::sort_index(state.CPU_queue_length(), "ascend");  
-        
-        // Take the first k indices (k shortest queues)
-        arma::uvec topk = order.head(k);  
-        
-        // Is the chosen core among the k shortest?
-        bool in_topk = arma::any(topk == dest_core);
-        
-        bool done = IsTerminal(nextState);
-        if (done && maxSteps != 0 && stepsPerformed >= maxSteps) {
-            return doneReward;
-        }
-        if (in_topk) {
-            return 1.0;
-        } else {
-            return -1.0;
-        }
-    }
 
     /**
      * Dynamics of Serverless instance. Get reward based on current state
