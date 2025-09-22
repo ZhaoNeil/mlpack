@@ -28,22 +28,20 @@
 
 class SharedData {
 private:
-    arma::mat data;
+    arma::rowvec data;
     size_t nMetrics;
-    size_t nCores;
 
 public:
-    SharedData(size_t metrics, size_t cores)
+    SharedData(size_t metrics)
         : nMetrics(metrics),
-          nCores(cores),
-          data(nMetrics, nCores, arma::fill::zeros) {}
+          data(nMetrics, arma::fill::zeros) {}
 
     arma::mat getData() const {
         return data;
     }
 
     void setData(const arma::mat& newData) {
-        if (newData.n_rows == nMetrics && newData.n_cols == nCores) {
+        if (newData.n_rows == nMetrics) {
             data = newData;
         } else {
             // Potentially handle mismatch here, or just assign as you do now.
@@ -51,15 +49,15 @@ public:
         }
     }
 
-    void setValue(size_t metricIndex, size_t coreIndex, double value) {
-        if (metricIndex < nMetrics && coreIndex < nCores) {
-            data(metricIndex, coreIndex) = value;
+    void setValue(size_t metricIndex, double value) {
+        if (metricIndex < nMetrics) {
+            data(metricIndex) = value;
         }
     }
 
-    double getValue(size_t metricIndex, size_t coreIndex) const {
-        if (metricIndex < nMetrics && coreIndex < nCores) {
-            return data(metricIndex, coreIndex);
+    double getValue(size_t metricIndex) const {
+        if (metricIndex < nMetrics) {
+            return data(metricIndex);
         }
         return 0.0;
     }

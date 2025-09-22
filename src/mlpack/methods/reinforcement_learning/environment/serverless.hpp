@@ -15,7 +15,7 @@ class Serverless {
    public:
     class State {
        public:
-        State() : data(nMetrics, nCores) { /* nothing to do here */ }
+        State() : data(dimension) { /* nothing to do here */ }
 
         /**
          * Construct a state instance from given data.
@@ -24,368 +24,49 @@ class Serverless {
          */
         // State(const arma::mat& data) : data(data) { /* Nothing to do here */
         // }
-        State(const arma::mat& inputData) : data(inputData) {
+        State(const arma::rowvec& inputData) : data(inputData) {
             if (data.is_empty()) {
                 throw std::runtime_error(
                     "State initialization error: data is empty.");
             }
-            // std::cout << "TaskResponseTime=" << data.row(0) << std::endl;
-            // std::cout << "TaskExecTime=" << data.row(1) << std::endl;
-            // std::cout << "TaskCPUtime=" << data.row(2) << std::endl;
-            // std::cout << "TaskMemory=" << data.row(3) << std::endl;
-            // std::cout << "PreemptCountPerCore=" << data.row(4) << std::endl;
-            // std::cout << "CPU_user_time=" << data.row(5) << std::endl;
-            // std::cout << "CPU_nice_time=" << data.row(6) << std::endl;
-            // std::cout << "CPU_system_time=" << data.row(7) << std::endl;
-            // std::cout << "CPU_idle_time=" << data.row(8) << std::endl;
-            // std::cout << "CPU_iowait_time=" << data.row(9) << std::endl;
-            // std::cout << "CPU_irq_time=" << data.row(10) << std::endl;
-            // std::cout << "CPU_softirq_time=" << data.row(11) << std::endl;
-            // std::cout << "CPU_steal_time=" << data.row(12) << std::endl;
-            // std::cout << "CPU_queue_length=" << data.row(13) << std::endl;
-        }
-
-        inline size_t FlattenIndex(size_t row, size_t col) const {
-            // row ∈ [0,13], col ∈ [0,59]
-            // nRows = 14
-            // return row + col * 3;
-            return row;
         }
 
         // The historical response time (sum or average) of tasks completed on
         // this core.
-        double TaskResponseTime(size_t core) const {
-            size_t idx = FlattenIndex(0, core);
-            return data(idx);
+        double TaskResponseTime() const {
+            return data(0);
         }
-        double& TaskResponseTime(size_t core) {
-            size_t idx = FlattenIndex(0, core);
-            return data(idx);
+        double& TaskResponseTime() {
+            return data(0);
         }
-
-        // The historical execution time (sum or average) of tasks completed on
-        // this core.
-        // double TaskExecTime(size_t core) const {
-        //     size_t idx = FlattenIndex(1, core);
-        //     return data(idx);
-        // }
-        // double& TaskExecTime(size_t core) {
-        //     size_t idx = FlattenIndex(1, core);
-        //     return data(idx);
-        // }
-
-        // The sum of on CPU time of tasks in the current individual queue. If
-        // no migration, then no need for this metric.
-        // double TaskCPUtime(size_t core) const {
-        //     size_t idx = FlattenIndex(2, core);
-        //     return data(idx);
-        // }
-        // double& TaskCPUtime(size_t core) {
-        //     size_t idx = FlattenIndex(2, core);
-        //     return data(idx);
-        // }
-
-        // Memory usage of running tasks on this core.
-        // This metric is questionable. No need for one-time scheduling, i.e. no
-        // migration for the current running tasks. But it might be useful for
-        // the rescheduling of the preempted tasks.
-        // double TaskMemory(size_t core) const {
-        //     size_t idx = FlattenIndex(3, core);
-        //     return data(idx);
-        // }
-        // double& TaskMemory(size_t core) {
-        //     size_t idx = FlattenIndex(3, core);
-        //     return data(idx);
-        // }
-
-        // number of preemptions happened on this core
-        // double PreemptCountPerCore(size_t core) const {
-        //     size_t idx = FlattenIndex(4, core);
-        //     return data(idx);
-        // }
-        // double& PreemptCountPerCore(size_t core) {
-        //     size_t idx = FlattenIndex(4, core);
-        //     return data(idx);
-        // }
-
-        // current CPU uer time on this core
-        // double CPU_user_time(size_t core) const {
-        //     size_t idx = FlattenIndex(5, core);
-        //     return data(idx);
-        // }
-        // double& CPU_user_time(size_t core) {
-        //     size_t idx = FlattenIndex(5, core);
-        //     return data(idx);
-        // }
-
-        // current CPU nice time on this core
-        // double CPU_nice_time(size_t core) const {
-        //     size_t idx = FlattenIndex(6, core);
-        //     return data(idx);
-        // }
-        // double& CPU_nice_time(size_t core) {
-        //     size_t idx = FlattenIndex(6, core);
-        //     return data(idx);
-        // }
-
-        // current CPU system time on this core
-        // double CPU_system_time(size_t core) const {
-        //     size_t idx = FlattenIndex(7, core);
-        //     return data(idx);
-        // }
-        // double& CPU_system_time(size_t core) {
-        //     size_t idx = FlattenIndex(7, core);
-        //     return data(idx);
-        // }
-
-        // current CPU idle time on this core
-        // double CPU_idle_time(size_t core) const {
-        //     size_t idx = FlattenIndex(8, core);
-        //     return data(idx);
-        // }
-        // double& CPU_idle_time(size_t core) {
-        //     size_t idx = FlattenIndex(8, core);
-        //     return data(idx);
-        // }
-
-        // current CPU iowait time on this core
-        // double CPU_iowait_time(size_t core) const {
-        //     size_t idx = FlattenIndex(9, core);
-        //     return data(idx);
-        // }
-        // double& CPU_iowait_time(size_t core) {
-        //     size_t idx = FlattenIndex(9, core);
-        //     return data(idx);
-        // }
-
-        // current CPU irq time on this core
-        // double CPU_irq_time(size_t core) const {
-        //     size_t idx = FlattenIndex(10, core);
-        //     return data(idx);
-        // }
-        // double& CPU_irq_time(size_t core) {
-        //     size_t idx = FlattenIndex(10, core);
-        //     return data(idx);
-        // }
-
-        // current CPU softirq time on this core
-        // double CPU_softirq_time(size_t core) const {
-        //     size_t idx = FlattenIndex(11, core);
-        //     return data(idx);
-        // }
-        // double& CPU_softirq_time(size_t core) {
-        //     size_t idx = FlattenIndex(11, core);
-        //     return data(idx);
-        // }
-
-        // current CPU steal time on this core
-        // double CPU_steal_time(size_t core) const {
-        //     size_t idx = FlattenIndex(12, core);
-        //     return data(idx);
-        // }
-        // double& CPU_steal_time(size_t core) {
-        //     size_t idx = FlattenIndex(12, core);
-        //     return data(idx);
-        // }
 
         // current CPU queue length on this core
-        double CPU_queue_length(size_t core) const {
-            size_t idx = FlattenIndex(1, core);
-            return data(idx);
+        double CPU_queue_length() const {
+            return data(1);
         }
-        double& CPU_queue_length(size_t core) {
-            size_t idx = FlattenIndex(1, core);
-            return data(idx);
+        double& CPU_queue_length() {
+            return data(1);
         }
 
-        arma::rowvec TaskResponseTime() const {
-            arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-            arma::rowvec r = tmp.row(0);
-            return r;
+        double UnstartedTasks() const {
+            return data(2);
         }
-        arma::rowvec TaskResponseTime() {
-            arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-            arma::rowvec r = tmp.row(0);
-            return r;
+        double& UnstartedTasks() {
+            return data(2);
         }
 
-        // arma::rowvec TaskExecTime() const {
-        //     arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-        //     arma::rowvec r = tmp.row(1);
-        //     return r;
-        // }
-        // arma::rowvec TaskExecTime() {
-        //     arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-        //     arma::rowvec r = tmp.row(1);
-        //     return r;
-        // }
+        arma::rowvec& Data() { return data; }
+        const arma::rowvec& Data() const { return data; }
 
-        // arma::rowvec TaskCPUtime() const {
-        //     arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-        //     arma::rowvec r = tmp.row(2);
-        //     return r;
-        // }
-        // arma::rowvec TaskCPUtime() {
-        //     arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-        //     arma::rowvec r = tmp.row(2);
-        //     return r;
-        // }
+        arma::colvec Encode() const { return data.t(); }
 
-        // arma::rowvec TaskMemory() const {
-        //     arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-        //     arma::rowvec r = tmp.row(3);
-        //     return r;
-        // }
-        // arma::rowvec TaskMemory() {
-        //     arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-        //     arma::rowvec r = tmp.row(3);
-        //     return r;
-        // }
+        static constexpr size_t dimension = 3;
 
-        // arma::rowvec PreemptCountPerCore() const {
-        //     arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-        //     arma::rowvec r = tmp.row(4);
-        //     return r;
-        // }
-        // arma::rowvec PreemptCountPerCore() {
-        //     arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-        //     arma::rowvec r = tmp.row(4);
-        //     return r;
-        // }
-
-        // arma::rowvec CPU_user_time() const {
-        //     arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-        //     arma::rowvec r = tmp.row(5);
-        //     return r;
-        // }
-        // arma::rowvec CPU_user_time() {
-        //     arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-        //     arma::rowvec r = tmp.row(5);
-        //     return r;
-        // }
-
-        // arma::rowvec CPU_nice_time() const {
-        //     arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-        //     arma::rowvec r = tmp.row(6);
-        //     return r;
-        // }
-        // arma::rowvec CPU_nice_time() {
-        //     arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-        //     arma::rowvec r = tmp.row(6);
-        //     return r;
-        // }
-
-        // arma::rowvec CPU_system_time() const {
-        //     arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-        //     arma::rowvec r = tmp.row(7);
-        //     return r;
-        // }
-        // arma::rowvec CPU_system_time() {
-        //     arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-        //     arma::rowvec r = tmp.row(7);
-        //     return r;
-        // }
-
-        // arma::rowvec CPU_idle_time() const {
-        //     arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-        //     arma::rowvec r = tmp.row(8);
-        //     return r;
-        // }
-        // arma::rowvec CPU_idle_time() {
-        //     arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-        //     arma::rowvec r = tmp.row(8);
-        //     return r;
-        // }
-
-        // arma::rowvec CPU_iowait_time() const {
-        //     arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-        //     arma::rowvec r = tmp.row(9);
-        //     return r;
-        // }
-        // arma::rowvec CPU_iowait_time() {
-        //     arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-        //     arma::rowvec r = tmp.row(9);
-        //     return r;
-        // }
-
-        // arma::rowvec CPU_irq_time() const {
-        //     arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-        //     arma::rowvec r = tmp.row(10);
-        //     return r;
-        // }
-        // arma::rowvec CPU_irq_time() {
-        //     arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-        //     arma::rowvec r = tmp.row(10);
-        //     return r;
-        // }
-
-        // arma::rowvec CPU_softirq_time() const {
-        //     arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-        //     arma::rowvec r = tmp.row(11);
-        //     return r;
-        // }
-        // arma::rowvec CPU_softirq_time() {
-        //     arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-        //     arma::rowvec r = tmp.row(11);
-        //     return r;
-        // }
-
-        // arma::rowvec CPU_steal_time() const {
-        //     arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-        //     arma::rowvec r = tmp.row(12);
-        //     return r;
-        // }
-        // arma::rowvec CPU_steal_time() {
-        //     arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-        //     arma::rowvec r = tmp.row(12);
-        //     return r;
-        // }
-
-        arma::rowvec CPU_queue_length() const {
-            arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-            arma::rowvec r = tmp.row(1);
-            return r;
-        }
-        arma::rowvec CPU_queue_length() {
-            arma::mat tmp = arma::reshape(data, nMetrics, nCores);
-            arma::rowvec r = tmp.row(1);
-            return r;
-        }
-
-        arma::mat& Data() { return data; }
-        const arma::mat& Data() const { return data; }
-
-        //! Encode the state to a column vector.
-        arma::colvec Encode() {
-            if (data.is_empty()) {
-                throw std::runtime_error(
-                    "Encode() error: State data is empty!");
-            }
-            arma::mat normalized = data;
-
-            for (size_t i = 0; i < nMetrics; ++i) {
-                arma::rowvec row = data.row(i);
-                double minVal = row.min();
-                double maxVal = row.max();
-
-                if (maxVal > minVal) {
-                    normalized.row(i) = (row - minVal) / (maxVal - minVal);
-                } else {
-                    normalized.row(i).zeros();
-                }
-            }
-            return arma::vectorise(normalized);
-        }
-
-        static constexpr size_t dimension = 2 * 20;
-
-        static constexpr size_t nCores = 20;
-
-        static constexpr size_t nMetrics = 2;
+        static constexpr size_t nMetrics = 3;
 
        private:
         //! Locally-stored state data.
-        arma::mat data;
+        arma::rowvec data;
     };
     
     /**
@@ -403,108 +84,21 @@ class Serverless {
           serverlessCores(inputCores),
           stepsPerformed(0) {}
 
-    arma::mat GetLatestEnvironmentMetrics(const SharedData& sharedData) {
+    arma::rowvec GetLatestEnvironmentMetrics(const SharedData& sharedData) {
         sharedDataMutex_.Lock();
-        arma::mat data = sharedData.getData();
+        arma::rowvec data = sharedData.getData();
         sharedDataMutex_.Unlock();
         return data;
     }
 
-    double GetScore(const State& state) {
-        double responseTime = arma::accu(state.TaskResponseTime());
-        // std::cout << "responseTime=" << responseTime << std::endl;
-        // double execTime = arma::accu(state.TaskExecTime());
-        // std::cout << "execTime=" << execTime << std::endl;
-        // double cpuTime = arma::accu(state.TaskCPUtime());
-        // std::cout << "cpuTime=" << cpuTime << std::endl;
-        // double memoryUsage = arma::accu(state.TaskMemory());
-        // std::cout << "memoryUsage=" << memoryUsage << std::endl;
-        // double preemptions = arma::accu(state.PreemptCountPerCore());
-        // std::cout << "preemptions=" << preemptions << std::endl;
-        // double queueLength = arma::accu(state.CPU_queue_length());
-        // std::cout << "queueLength=" << state.CPU_queue_length() << std::endl;
-
-        // double userTime = arma::accu(state.CPU_user_time());
-        // std::cout << "userTime=" << userTime << std::endl;
-        // double niceTime = arma::accu(state.CPU_nice_time());
-        // std::cout << "niceTime=" << niceTime << std::endl;
-        // double systemTime = arma::accu(state.CPU_system_time());
-        // std::cout << "systemTime=" << systemTime << std::endl;
-        // double idleTime = arma::accu(state.CPU_idle_time());
-        // std::cout << "idleTime=" << idleTime << std::endl;
-        // double iowaitTime = arma::accu(state.CPU_iowait_time());
-        // std::cout << "iowaitTime=" << iowaitTime << std::endl;
-        // double irqTime = arma::accu(state.CPU_irq_time());
-        // std::cout << "irqTime=" << irqTime << std::endl;
-        // double softirqTime = arma::accu(state.CPU_softirq_time());
-        // std::cout << "softirqTime=" << softirqTime << std::endl;
-        // double stealTime = arma::accu(state.CPU_steal_time());
-        // std::cout << "stealTime=" << stealTime << std::endl;
-
-        // double busyTime =
-        //     userTime + niceTime + systemTime + irqTime + softirqTime;
-        // double totalTime = busyTime + idleTime + iowaitTime + stealTime;
-        // double utilization = (totalTime > 0) ? busyTime / totalTime : 0.0;
-
-        double w1 = 1.0;   // Response time
-        double w2 = 1.0;   // Exec time
-        double w3 = 0.1;   // CPU time
-        double w4 = 0.05;  // Memory
-        double w5 = 0.1;   // Preemptions
-        double w6 = 0.1;   // Queue length
-        double w7 = 0.1;   // CPU utilization
-
-        // double score = -(w1 * responseTime + w2 * execTime);
-        // score -= (w3 * cpuTime + w4 * memoryUsage +
-        //           w6 * queueLength - w7 * utilization);
-        // double score = -arma::stddev(state.CPU_queue_length());
-        // double score = -(w1 * responseTime + w2 * execTime +
-        //                  w6 * arma::stddev(state.CPU_queue_length()));
-        double score = -responseTime;
-
-        return score;
-    }
-
-    // class Action {
-    //    public:
-    //     size_t action;
-
-    //     Action() : action(0) {}
-    //     Action(size_t id) : action(id) {}
-
-    //     static constexpr size_t size = 20;
-    // };
-
     class Action {
        public:
-        static constexpr size_t kNumCores = State::nCores;  // 20
-        static constexpr size_t kNumTimeBins = 3;
-        static constexpr size_t kNumShuffleBins = 3;
-
-        static constexpr size_t size =
-            kNumCores * kNumTimeBins * kNumShuffleBins;
-
-        // Flattened action id in [0, size-1]
         size_t action;
 
         Action() : action(0) {}
-        explicit Action(size_t id) : action(id) {}
+        Action(size_t id) : action(id) {}
 
-        // Helpers to pack/unpack a tuple <core, timeBin, shuffleBin>.
-        static inline size_t Encode(size_t core, size_t timeBin,
-                                    size_t shuffleBin) {
-            return core + kNumCores * (timeBin + kNumTimeBins * shuffleBin);
-        }
-        static inline void Decode(size_t id, size_t& core, size_t& timeBin,
-                                  size_t& shuffleBin) {
-            core = id % kNumCores;
-            id /= kNumCores;
-            timeBin = id % kNumTimeBins;
-            id /= kNumTimeBins;
-            shuffleBin = id % kNumShuffleBins;  // in [0, kNumShuffleBins-1]
-        }
-        static inline constexpr uint16_t kTimeSliceMs[Action::kNumTimeBins] = {1000, 2000, 3000};
-        static inline constexpr size_t kShuffleCounts[Action::kNumShuffleBins] = {2, 4, 6};
+        static constexpr size_t size = 20;
     };
 
 
@@ -520,69 +114,18 @@ class Serverless {
      */
     double Sample(const State& state, const Action& action, State& nextState) {
         stepsPerformed++;
-        std::cout << "stepsPerformed= " << stepsPerformed << std::endl;
 
-        size_t coreBin, timeBin, shuffleBin; //indices after decoding
-        Action::Decode(action.action, coreBin, timeBin, shuffleBin);
-        size_t dest_core = coreBin;
-        double timeSlice = Action::kTimeSliceMs[timeBin];
-        size_t shuffleCount = Action::kShuffleCounts[shuffleBin];
-        std::cout << "dest_core=" << dest_core
-                  << ", timeSlice=" << timeSlice
-                  << ", shuffleCount=" << shuffleCount << std::endl;
-
-        arma::mat latestdata = GetLatestEnvironmentMetrics(sharedData);
+        size_t dest_core = action.action;
+        arma::rowvec latestdata = GetLatestEnvironmentMetrics(sharedData);
         nextState = State(latestdata);
-
-        double state_score = GetScore(state);
-        double next_state_score = GetScore(nextState);
-        // std::cout << "state_score=" << state_score << std::endl;
-        // std::cout << "next_state_score=" << next_state_score << std::endl;
 
         bool done = IsTerminal(nextState);
         if (done && maxSteps != 0 && stepsPerformed >= maxSteps) {
             return doneReward;
         }
 
-        if (next_state_score > state_score) {
-            std::cout << "Reward for the action." << std::endl;
-            return 1.0;
-        } else if (next_state_score < state_score) {
-            std::cout << "Penalty for the action." << std::endl;
-            return -1.0;
-        } else
-            std::cout << "No change in score." << std::endl;
-        return 0.0;
+        return - state.UnstartedTasks();
     }
-    // double Sample(const State& state, const Action& action, State& nextState)
-    // {
-    //     stepsPerformed++;
-    //     std::cout << "stepsPerformed= " << stepsPerformed << std::endl;
-
-    //     size_t dest_core = action.action;
-    //     std::cout << "dest_core=" << dest_core << std::endl;
-    //     arma::mat latestdata = GetLatestEnvironmentMetrics(sharedData);
-    //     nextState = State(latestdata);
-    //     const size_t k = std::min<size_t>(10,
-    //     state.CPU_queue_length().n_elem); arma::uvec order =
-    //     arma::sort_index(state.CPU_queue_length(), "ascend");
-
-    //     // Take the first k indices (k shortest queues)
-    //     arma::uvec topk = order.head(k);
-
-    //     // Is the chosen core among the k shortest?
-    //     bool in_topk = arma::any(topk == dest_core);
-
-    //     bool done = IsTerminal(nextState);
-    //     if (done && maxSteps != 0 && stepsPerformed >= maxSteps) {
-    //         return doneReward;
-    //     }
-    //     if (in_topk) {
-    //         return 1.0;
-    //     } else {
-    //         return -1.0;
-    //     }
-    // }
 
     /**
      * Dynamics of Serverless instance. Get reward based on current state
@@ -607,8 +150,8 @@ class Serverless {
         stepsPerformed = 0;
         // arma::mat currentdata = GetLatestEnvironmentMetrics(sharedData);
         // std::cout << "currentdata=" << currentdata << std::endl;
-        arma::mat initialdata =
-            arma::zeros<arma::mat>(State::nMetrics, State::nCores);
+        arma::rowvec initialdata =
+            arma::zeros<arma::rowvec>(State::nMetrics);
 
         return State(initialdata);
     }
@@ -626,7 +169,7 @@ class Serverless {
                       << "being taken." << std::endl;
             return true;
         } else if (stepsPerformed > maxSteps - 1 &&
-                   arma::all(state.CPU_queue_length() == 0)) {
+                   state.CPU_queue_length() == 0) {
             std::cout << "All tasks completed." << std::endl;
             return true;
         }
