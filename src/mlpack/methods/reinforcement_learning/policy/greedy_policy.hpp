@@ -67,19 +67,17 @@ class GreedyPolicy
   {
     double exploration = Random();
     ActionType action;
-    std::cout << "exploration: " << exploration << ", epsilon: " << epsilon << std::endl;
+    // std::cout << "exploration: " << exploration << ", epsilon: " << epsilon << std::endl;
 
     // Select the action randomly.
     if (!deterministic && exploration < epsilon && isNoisy == false)
     {
-      // std::cout << "selecting random action" << std::endl;
       action.action = static_cast<decltype(action.action)>
           (RandInt(ActionType::size));
     }
     // Select the action greedily.
     else
     {
-      // std::cout << "selecting greedy action" << std::endl;
       action.action = static_cast<decltype(action.action)>(
           arma::as_scalar(arma::find(actionValue == actionValue.max(), 1)));
     }
