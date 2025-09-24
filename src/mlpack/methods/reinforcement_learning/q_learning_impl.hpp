@@ -338,9 +338,9 @@ QLearning<EnvironmentType, NetworkType, UpdaterType, BehaviorPolicyType,
           ReplayType>::GetAction() {
     if (environment.IsTerminal(state)) {
         state = environment.InitialSample();
-        episodeStarted = true;
-        episodeFinished = false;
-        episodeReturn = 0.0;
+        episodeStarted.exchange(true);
+        episodeFinished.exchange(false);
+        episodeReturn.exchange(0);
         episodeActions.clear();
     }
 

@@ -33,26 +33,19 @@ class Serverless {
 
         // The historical response time (sum or average) of tasks completed on
         // this core.
-        double TaskResponseTime() const {
-            return data(0);
-        }
-        double& TaskResponseTime() {
-            return data(0);
-        }
 
-        // current CPU queue length on this core
-        double CPU_queue_length() const {
-            return data(1);
+        double StartedTasks() const {
+            return data(0);
         }
-        double& CPU_queue_length() {
-            return data(1);
+        double& StartedTasks() {
+            return data(0);
         }
 
         double UnstartedTasks() const {
-            return data(2);
+            return data(1);
         }
         double& UnstartedTasks() {
-            return data(2);
+            return data(1);
         }
 
         arma::rowvec& Data() { return data; }
@@ -60,9 +53,9 @@ class Serverless {
 
         arma::colvec Encode() const { return data.t(); }
 
-        static constexpr size_t dimension = 3;
+        static constexpr size_t dimension = 2;
 
-        static constexpr size_t nMetrics = 3;
+        static constexpr size_t nMetrics = 2;
 
         static constexpr size_t nCores = 20;
 
@@ -178,7 +171,7 @@ class Serverless {
             return doneReward;
         }
 
-        return - state.UnstartedTasks();
+        return - state.StartedTasks();
     }
 
     /**
@@ -223,7 +216,7 @@ class Serverless {
                       << "being taken." << std::endl;
             return true;
         } else if (stepsPerformed > maxSteps - 1 &&
-                   state.CPU_queue_length() == 0) {
+                   state.StartedTasks() == 0 && state.UnstartedTasks() == 0) {
             std::cout << "All tasks completed." << std::endl;
             return true;
         }

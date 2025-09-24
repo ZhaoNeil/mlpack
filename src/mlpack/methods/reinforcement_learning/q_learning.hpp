@@ -137,8 +137,7 @@ class QLearning
   //! Modify the learning network.
   NetworkType& Network() { return learningNetwork; }
 
-  double IsEpisodeDone() const { return episodeFinished;}
-  double GetEpisodeReturn() const { return episodeReturn; }
+  int64_t GetEpisodeReturn() const { return episodeReturn.load(); }
   ActionType GetAction();
 
  private:
@@ -185,9 +184,9 @@ class QLearning
   //! Locally-stored flag indicating training mode or test mode.
   bool deterministic;
 
-  bool episodeStarted = false;
-  bool episodeFinished = false;
-  double episodeReturn = 0.0;
+  std::atomic<bool> episodeStarted = false;
+  std::atomic<bool> episodeFinished = false;
+  std::atomic<int64_t> episodeReturn = 0;
   std::vector<ActionType> episodeActions;
   std::ofstream statefile;
   std::vector<double> episodeReturnList;
