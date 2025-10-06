@@ -48,14 +48,28 @@ class Serverless {
             return data(1);
         }
 
+        double Sum_ExecTime() const {
+            return data(2);
+        }
+        double& Sum_ExecTime() {
+            return data(2);
+        }
+
+        double Preemptions() const {
+            return data(3);
+        }
+        double& Preemptions() {
+            return data(3);
+        }
+
         arma::rowvec& Data() { return data; }
         const arma::rowvec& Data() const { return data; }
 
         arma::colvec Encode() const { return data.t(); }
 
-        static constexpr size_t dimension = 2;
+        static constexpr size_t dimension = 4;
 
-        static constexpr size_t nMetrics = 2;
+        static constexpr size_t nMetrics = 4;
 
         static constexpr size_t nCores = 20;
 
@@ -86,47 +100,73 @@ class Serverless {
         return data;
     }
 
-    // class Action {
-    //    public:
-    //     size_t action;
-
-    //     Action() : action(0) {}
-    //     Action(size_t id) : action(id) {}
-
-    //     static constexpr size_t size = 20;
-    // };
-
     class Action {
        public:
-        static constexpr size_t kNumCores = State::nCores;  // 20
-        static constexpr size_t kNumTimeBins = 3;
-        static constexpr size_t kNumShuffleBins = 3;
-
-        static constexpr size_t size =
-            kNumCores * kNumTimeBins * kNumShuffleBins;
-
-        // Flattened action id in [0, size-1]
         size_t action;
 
         Action() : action(0) {}
-        explicit Action(size_t id) : action(id) {}
+        Action(size_t id) : action(id) {}
 
-        // Helpers to pack/unpack a tuple <core, timeBin, shuffleBin>.
-        static inline size_t Encode(size_t core, size_t timeBin,
-                                    size_t shuffleBin) {
-            return core + kNumCores * (timeBin + kNumTimeBins * shuffleBin);
-        }
-        static inline void Decode(size_t id, size_t& core, size_t& timeBin,
-                                  size_t& shuffleBin) {
-            core = id % kNumCores;
-            id /= kNumCores;
-            timeBin = id % kNumTimeBins;
-            id /= kNumTimeBins;
-            shuffleBin = id % kNumShuffleBins;  // in [0, kNumShuffleBins-1]
-        }
-        static inline constexpr uint16_t kTimeSliceMs[Action::kNumTimeBins] = {1000, 2000, 3000};
-        static inline constexpr size_t kShuffleCounts[Action::kNumShuffleBins] = {2, 4, 6};
+        static constexpr size_t size = 20;
     };
+
+    // class Action {
+    //    public:
+    //     static constexpr size_t kNumCores = State::nCores;  // 20
+    //     static constexpr size_t kNumTimeBins = 3;
+    //     static constexpr size_t kNumShuffleBins = 3;
+
+    //     static constexpr size_t size =
+    //         kNumCores * kNumTimeBins * kNumShuffleBins;
+
+    //     // Flattened action id in [0, size-1]
+    //     size_t action;
+
+    //     Action() : action(0) {}
+    //     explicit Action(size_t id) : action(id) {}
+
+    //     // Helpers to pack/unpack a tuple <core, timeBin, shuffleBin>.
+    //     static inline size_t Encode(size_t core, size_t timeBin,
+    //                                 size_t shuffleBin) {
+    //         return core + kNumCores * (timeBin + kNumTimeBins * shuffleBin);
+    //     }
+    //     static inline void Decode(size_t id, size_t& core, size_t& timeBin,
+    //                               size_t& shuffleBin) {
+    //         core = id % kNumCores;
+    //         id /= kNumCores;
+    //         timeBin = id % kNumTimeBins;
+    //         id /= kNumTimeBins;
+    //         shuffleBin = id % kNumShuffleBins;  // in [0, kNumShuffleBins-1]
+    //     }
+    //     static inline constexpr uint16_t kTimeSliceMs[Action::kNumTimeBins] = {2000, 3000, 4000};
+    //     static inline constexpr size_t kShuffleCounts[Action::kNumShuffleBins] = {0, 2, 4};
+    // };
+
+    // class Action {
+    //    public:
+    //     static constexpr size_t kNumCores = State::nCores;  // 20
+    //     static constexpr size_t kNumTimeBins = 3;
+
+    //     static constexpr size_t size =
+    //         kNumCores * kNumTimeBins;
+
+    //     // Flattened action id in [0, size-1]
+    //     size_t action;
+
+    //     Action() : action(0) {}
+    //     explicit Action(size_t id) : action(id) {}
+
+    //     // Helpers to pack/unpack a tuple <core, timeBin>.
+    //     static inline size_t Encode(size_t core, size_t timeBin) {
+    //         return core + kNumCores * timeBin;
+    //     }
+    //     static inline void Decode(size_t id, size_t& core, size_t& timeBin) {
+    //         core = id % kNumCores;
+    //         id /= kNumCores;
+    //         timeBin = id % kNumTimeBins;
+    //     }
+    //     static inline constexpr uint16_t kTimeSliceMs[Action::kNumTimeBins] = {1000, 2000, 3000};
+    // };
 
 
     /**
@@ -138,10 +178,30 @@ class Serverless {
      * @param nextState The next state.
      * @return reward,
      */
+    double Sample(const State& state, const Action& action, State& nextState) {
+        stepsPerformed++;
+
+        size_t dest_core = action.action;
+        arma::rowvec latestdata = GetLatestEnvironmentMetrics(sharedData);
+        nextState = State(latestdata);
+
+        bool done = IsTerminal(nextState);
+        if (done && maxSteps != 0 && stepsPerformed >= maxSteps) {
+            return doneReward;
+        }
+
+        return - state.UnstartedTasks();
+    }
+
     // double Sample(const State& state, const Action& action, State& nextState) {
     //     stepsPerformed++;
+    //     // std::cout << "stepsPerformed= " << stepsPerformed << std::endl;
 
-    //     size_t dest_core = action.action;
+    //     size_t coreBin, timeBin; //indices after decoding
+    //     Action::Decode(action.action, coreBin, timeBin);
+    //     size_t dest_core = coreBin;
+    //     double timeSlice = Action::kTimeSliceMs[timeBin];
+
     //     arma::rowvec latestdata = GetLatestEnvironmentMetrics(sharedData);
     //     nextState = State(latestdata);
 
@@ -150,29 +210,8 @@ class Serverless {
     //         return doneReward;
     //     }
 
-    //     return - state.UnstartedTasks();
+    //     return - state.Preemptions();
     // }
-
-    double Sample(const State& state, const Action& action, State& nextState) {
-        stepsPerformed++;
-        // std::cout << "stepsPerformed= " << stepsPerformed << std::endl;
-
-        size_t coreBin, timeBin, shuffleBin; //indices after decoding
-        Action::Decode(action.action, coreBin, timeBin, shuffleBin);
-        size_t dest_core = coreBin;
-        double timeSlice = Action::kTimeSliceMs[timeBin];
-        size_t shuffleCount = Action::kShuffleCounts[shuffleBin];
-
-        arma::mat latestdata = GetLatestEnvironmentMetrics(sharedData);
-        nextState = State(latestdata);
-
-        bool done = IsTerminal(nextState);
-        if (done && maxSteps != 0 && stepsPerformed >= maxSteps) {
-            return doneReward;
-        }
-
-        return - state.StartedTasks();
-    }
 
     /**
      * Dynamics of Serverless instance. Get reward based on current state
